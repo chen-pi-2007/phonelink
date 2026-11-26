@@ -63,21 +63,28 @@ def main():
     shutil.copy(ROOT / "app/build/outputs/apk/release/app-release.apk", apk)
     sha = hashlib.sha256(apk.read_bytes()).hexdigest()
 
+    # 先单独提交 APK，拿到提交号；下载地址按提交号生成，避免 Gitee/raw 的 CDN 缓存到旧的 404
+    run("git", "add", "-A")
+    run("git", "commit", "-m", f"v{name} 安装包")
+    sha_commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True,
+                                text=True, check=True).stdout.strip()
+
     gh_release = f"https://github.com/{GITHUB}/releases/download/v{name}/{apk_name}"
     urls = []
     gr = gitee_repo()
     if gr:
-        urls.append(f"https://gitee.com/{gr}/raw/main/dist/{apk_name}")
+        urls.append(f"https://gitee.com/{gr}/raw/{sha_commit}/dist/{apk_name}")
     urls += [
-        f"https://raw.githubusercontent.com/{GITHUB}/main/dist/{apk_name}",
+        f"https://raw.githubusercontent.com/{GITHUB}/{sha_commit}/dist/{apk_name}",
         gh_release,
         f"https://ghfast.top/{gh_release}",
     ]
     manifest = {"versionCode": code, "versionName": name, "notes": notes,
                 "sha256": sha, "size": apk.stat().st_size, "apk": urls}
-    (ROOT / "update.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (ROOT / "update.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "
+", encoding="utf-8")
 
-    run("git", "add", "-A")
+    run("git", "add", "update.json")
     run("git", "commit", "-m", f"发布 v{name}" + (f"：{notes}" if notes else ""))
     run("git", "push", "origin", "HEAD:main")
     if gr:
