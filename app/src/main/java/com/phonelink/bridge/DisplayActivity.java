@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -59,7 +58,6 @@ public class DisplayActivity extends Activity {
     private volatile boolean running = true;
     private volatile OutputStream out;
     private volatile BluetoothSocket client;
-    private BluetoothServerSocket server;
 
     // 进度插值
     private long basePos, baseAt, duration;
@@ -92,7 +90,7 @@ public class DisplayActivity extends Activity {
     protected void onDestroy() {
         running = false;
         closeQuietly();
-        try { if (server != null) server.close(); } catch (Exception ignored) {}
+        synchronized (wake) { wake.notifyAll(); }
         super.onDestroy();
     }
 
@@ -108,12 +106,7 @@ public class DisplayActivity extends Activity {
         frame.addView(root);
 
         statusView = text(14, DIM);
-        statusView.setOnLongClickListener(v -> {
-            startActivity(new Intent(this, MainActivity.class).putExtra("choose", true));
-            Proto.prefs(this).edit().remove(Proto.KEY_MODE).apply();
-            finish();
-            return true;
-        });
+        statusView.setOnLongClickListener(v -> { showPicker(); return true; });
         root.addView(statusView);
 
         android.widget.HorizontalScrollView hs = new android.widget.HorizontalScrollView(this);
@@ -170,12 +163,12 @@ public class DisplayActivity extends Activity {
 
         LinearLayout row = new LinearLayout(this);
         row.setPadding(0, dp(12), 0, 0);
-        row.addView(ctrl("−15s", () -> sendCmd("seekBy", -15000)), weight());
+        row.addView(ctrl("−15", () -> sendCmd("seekBy", -15000)), weight());
         row.addView(ctrl("⏮", () -> sendCmd("prev", 0)), weight());
         playBtn = ctrl("▶", () -> sendCmd("toggle", 0));
         row.addView(playBtn, weight());
         row.addView(ctrl("⏭", () -> sendCmd("next", 0)), weight());
-        row.addView(ctrl("+15s", () -> sendCmd("seekBy", 15000)), weight());
+        row.addView(ctrl("+15", () -> sendCmd("seekBy", 15000)), weight());
         root.addView(row);
 
         queueBtn = ctrl("播放列表", () ->
@@ -195,7 +188,7 @@ public class DisplayActivity extends Activity {
         frame.addView(queuePanel, qp);
 
         setContentView(frame);
-        statusView.setText("等待主手机连接…（长按此处切换模式）  v" + Updater.myVersionName(this));
+        statusView.setText("正在连接主手机…（长按此处选择主手机）  v" + Updater.myVersionName(this));
         titleView.setText("未连接");
     }
 
@@ -390,34 +383,67 @@ public class DisplayActivity extends Activity {
                 : String.format(Locale.US, "%d:%02d", s / 60, s % 60);
     }
 
-    // ---------------- 蓝牙服务端 ----------------
+    // ---------------- 蓝牙客户端：App 在前台才去连主手机，退到后台就断开 ----------------
 
-    private boolean serverStarted;
+    private boolean clientStarted;
+    private volatile boolean foreground;
+    private final Object wake = new Object();
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        foreground = true;
+        synchronized (wake) { wake.notifyAll(); }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // 灭屏或切到别的 App：断开连接，主手机回到待机，不耗电
+        foreground = false;
+        closeQuietly();
+    }
+
+    private void waitWake(long ms) {
+        synchronized (wake) {
+            try { wake.wait(ms); } catch (InterruptedException ignored) {}
+        }
+    }
 
     @SuppressLint("MissingPermission")
     private void startServer() {
-        if (serverStarted) return;
-        serverStarted = true;
+        if (clientStarted) return;
+        clientStarted = true;
         new Thread(() -> {
             BluetoothAdapter ad = getSystemService(BluetoothManager.class).getAdapter();
             if (ad == null) { setStatus("本机没有蓝牙"); return; }
+            int failures = 0;
             while (running) {
+                if (!foreground) { waitWake(60_000); continue; }
+                String mac = Proto.prefs(this).getString(Proto.KEY_TARGET, null);
+                if (mac == null) {
+                    setStatus("请选择要连接的主手机（长按此处）");
+                    ui.post(this::showPicker);
+                    waitWake(60_000);
+                    continue;
+                }
                 try {
                     if (!ad.isEnabled()) {
                         setStatus("蓝牙未开启，尝试开启…");
                         try { Runtime.getRuntime().exec(new String[]{"su", "-c", "svc bluetooth enable"}).waitFor(); }
                         catch (Exception ignored) {}
-                        Thread.sleep(3000);
+                        waitWake(3000);
                         continue;
                     }
-                    if (server == null) server = ad.listenUsingRfcommWithServiceRecord(Proto.SDP_NAME, Proto.UUID_SPP);
-                    setStatus("等待主手机连接…  本机：" + ad.getName() + "（长按此处切换模式）");
-                    BluetoothSocket s = server.accept();
-                    closeQuietly();
+                    android.bluetooth.BluetoothDevice dev = ad.getRemoteDevice(mac);
+                    setStatus("正在连接 " + dev.getName() + " …");
+                    BluetoothSocket s = dev.createRfcommSocketToServiceRecord(Proto.UUID_SPP);
+                    s.connect();
+                    if (!foreground) { s.close(); continue; }
                     client = s;
                     out = s.getOutputStream();
-                    String name = s.getRemoteDevice().getName();
-                    setStatus("已连接 " + name);
+                    failures = 0;
+                    setStatus("已连接 " + dev.getName());
                     connected = true;
                     JSONObject hello = new JSONObject();
                     hello.put("t", "hello");
@@ -434,16 +460,54 @@ public class DisplayActivity extends Activity {
                         } catch (Exception ignored) {}
                     }
                 } catch (Exception e) {
-                    setStatus("连接断开：" + e.getMessage());
-                    try { if (server != null) server.close(); } catch (Exception ignored) {}
-                    server = null;
-                    try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+                    failures++;
+                    if (foreground) setStatus("连不上主手机（主手机 App 是否在后台运行？），稍后重试");
                 }
                 closeQuietly();
                 connected = false;
-                ui.post(() -> titleView.setText("主手机已断开，等待重连…"));
+                if (foreground) {
+                    ui.post(() -> titleView.setText("未连接主手机"));
+                    // 前台时重试：2s、4s、8s，最长 10s
+                    waitWake(Math.min(10_000L, 1000L << Math.min(failures, 4)));
+                }
             }
-        }, "bt-server").start();
+        }, "bt-client").start();
+    }
+
+    /** 选择主手机（从已配对设备里选），也可以切换模式。 */
+    @SuppressLint("MissingPermission")
+    private void showPicker() {
+        queueSig = null;
+        queueList.removeAllViews();
+        TextView head = text(22, FG);
+        head.setText("选择主手机（需先在系统蓝牙里配对）");
+        queueList.addView(head);
+        BluetoothAdapter ad = getSystemService(BluetoothManager.class).getAdapter();
+        String cur = Proto.prefs(this).getString(Proto.KEY_TARGET, "");
+        if (ad != null) {
+            for (android.bluetooth.BluetoothDevice d : ad.getBondedDevices()) {
+                TextView t = text(20, d.getAddress().equals(cur) ? ACCENT : FG);
+                t.setPadding(0, dp(14), 0, dp(14));
+                t.setText((d.getAddress().equals(cur) ? "✔ " : "") + d.getName());
+                t.setOnClickListener(v -> {
+                    Proto.prefs(this).edit().putString(Proto.KEY_TARGET, d.getAddress()).apply();
+                    queuePanel.setVisibility(View.GONE);
+                    closeQuietly();
+                    synchronized (wake) { wake.notifyAll(); }
+                });
+                queueList.addView(t);
+            }
+        }
+        TextView sw = text(18, DIM);
+        sw.setPadding(0, dp(30), 0, dp(14));
+        sw.setText("切换为主手机模式");
+        sw.setOnClickListener(v -> {
+            Proto.prefs(this).edit().remove(Proto.KEY_MODE).apply();
+            startActivity(new Intent(this, MainActivity.class).putExtra("choose", true));
+            finish();
+        });
+        queueList.addView(sw);
+        queuePanel.setVisibility(View.VISIBLE);
     }
 
     // ---------------- 更新：蓝牙接收主手机推来的新版 / 自己联网检查 ----------------

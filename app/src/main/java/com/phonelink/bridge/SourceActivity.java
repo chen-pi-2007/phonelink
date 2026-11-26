@@ -90,14 +90,13 @@ public class SourceActivity extends Activity {
         root.addView(hide);
 
         TextView pick = new TextView(this);
-        pick.setText("⑤ 选择副屏（需先在系统蓝牙里配对）：");
+        pick.setText("⑤ 在系统蓝牙里和副屏配对一次即可。由副屏来连接本机：副屏 App 打开时才连，平时本机只在后台待机，不耗电。");
         pick.setTextSize(16);
         pick.setPadding(0, 30, 0, 10);
         root.addView(pick);
 
         deviceList = new LinearLayout(this);
         deviceList.setOrientation(LinearLayout.VERTICAL);
-        root.addView(deviceList);
 
         root.addView(btn("切换为副屏模式", () -> {
             Proto.prefs(this).edit().remove(Proto.KEY_MODE).apply();
@@ -180,9 +179,7 @@ public class SourceActivity extends Activity {
 
     private final Runnable tick = new Runnable() {
         @Override public void run() {
-            String mac = Proto.prefs(SourceActivity.this).getString(Proto.KEY_TARGET, "未选择");
             statusView.setText("通知使用权：" + (listenerEnabled() ? "已开启" : "未开启")
-                    + "\n副屏设备：" + mac
                     + "\n连接状态：" + BridgeListenerService.status);
             ui.postDelayed(this, 1000);
         }
