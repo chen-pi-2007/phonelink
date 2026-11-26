@@ -1,13 +1,13 @@
 {
-  "versionCode": 5,
-  "versionName": "0.4.0",
-  "notes": "改为副屏主动连接：主手机只在后台待机不耗电，副屏App在前台才连接、灭屏或切走即断开；选择主手机改到副屏上（长按顶部状态栏）",
-  "sha256": "2fc04e9c7b830ad5aa598f214794082c0bc546c786860cd32ff0267d3b416561",
-  "size": 38004,
+  "versionCode": 6,
+  "versionName": "0.5.0",
+  "notes": "导航横幅：兼容高德/百度/腾讯地图（读导航通知+高德车机广播）；主手机可复制导航诊断记录",
+  "sha256": "703c4c3544366f9ed44c41b573c1cd9513b9d40348aaf4731c0e2666ff18c7c5",
+  "size": 43392,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/87fffed18a98425229fc9706aa9c573e936da2f7/dist/PhoneLink-v0.4.0.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/87fffed18a98425229fc9706aa9c573e936da2f7/dist/PhoneLink-v0.4.0.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.4.0/PhoneLink-v0.4.0.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.4.0/PhoneLink-v0.4.0.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/5b6b5fc7c89da5d155590b93250c261a43bbdbca/dist/PhoneLink-v0.5.0.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/5b6b5fc7c89da5d155590b93250c261a43bbdbca/dist/PhoneLink-v0.5.0.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.5.0/PhoneLink-v0.5.0.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.5.0/PhoneLink-v0.5.0.apk"
   ]
 }
