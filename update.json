@@ -1,13 +1,13 @@
 {
-  "versionCode": 4,
-  "versionName": "0.3.0",
-  "notes": "省电：没在播放时不连副屏、重连退避、降低轮询频率；副屏断开或暂停超过2分钟后允许灭屏，开始播放自动亮屏",
-  "sha256": "ff7d52beefaa25992683dfb0ba37238a54501857865f00972c5b26550b7679a4",
-  "size": 37448,
+  "versionCode": 5,
+  "versionName": "0.4.0",
+  "notes": "改为副屏主动连接：主手机只在后台待机不耗电，副屏App在前台才连接、灭屏或切走即断开；选择主手机改到副屏上（长按顶部状态栏）",
+  "sha256": "2fc04e9c7b830ad5aa598f214794082c0bc546c786860cd32ff0267d3b416561",
+  "size": 38004,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/d2ef941f37ed49b3fdca1fc87227c1160d794939/dist/PhoneLink-v0.3.0.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/d2ef941f37ed49b3fdca1fc87227c1160d794939/dist/PhoneLink-v0.3.0.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.3.0/PhoneLink-v0.3.0.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.3.0/PhoneLink-v0.3.0.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/87fffed18a98425229fc9706aa9c573e936da2f7/dist/PhoneLink-v0.4.0.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/87fffed18a98425229fc9706aa9c573e936da2f7/dist/PhoneLink-v0.4.0.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.4.0/PhoneLink-v0.4.0.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.4.0/PhoneLink-v0.4.0.apk"
   ]
 }
