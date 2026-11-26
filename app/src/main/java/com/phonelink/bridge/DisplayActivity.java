@@ -70,8 +70,7 @@ public class DisplayActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-                | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         buildUi();
         if (Build.VERSION.SDK_INT >= 31 &&
@@ -349,9 +348,40 @@ public class DisplayActivity extends Activity {
             } else {
                 timeView.setText(last == null ? "" : fmt(pos));
             }
-            ui.postDelayed(this, 500);
+            updateKeepScreenOn();
+            ui.postDelayed(this, 1000);
         }
     };
+
+    // 省电：连着主手机且在播放（或暂停不到 2 分钟）才常亮，否则交给系统按时灭屏
+    private volatile boolean connected;
+    private long lastPlayingAt;
+    private boolean keepOn;
+
+    private void updateKeepScreenOn() {
+        long now = SystemClock.elapsedRealtime();
+        if (connected && playing) lastPlayingAt = now;
+        boolean want = connected && (playing || now - lastPlayingAt < 120_000);
+        if (want == keepOn) return;
+        keepOn = want;
+        if (want) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            wakeScreen();
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    /** 主手机开始播放时把已经灭掉的屏幕点亮。 */
+    @SuppressWarnings("deprecation")
+    private void wakeScreen() {
+        android.os.PowerManager pm = getSystemService(android.os.PowerManager.class);
+        if (pm.isInteractive()) return;
+        android.os.PowerManager.WakeLock wl = pm.newWakeLock(
+                android.os.PowerManager.SCREEN_BRIGHT_WAKE_LOCK | android.os.PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                "phonelink:wake");
+        wl.acquire(3000);
+    }
 
     private static String fmt(long ms) {
         long s = ms / 1000;
@@ -388,6 +418,7 @@ public class DisplayActivity extends Activity {
                     out = s.getOutputStream();
                     String name = s.getRemoteDevice().getName();
                     setStatus("已连接 " + name);
+                    connected = true;
                     JSONObject hello = new JSONObject();
                     hello.put("t", "hello");
                     hello.put("ver", Updater.myVersion(this));
@@ -409,6 +440,7 @@ public class DisplayActivity extends Activity {
                     try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
                 }
                 closeQuietly();
+                connected = false;
                 ui.post(() -> titleView.setText("主手机已断开，等待重连…"));
             }
         }, "bt-server").start();

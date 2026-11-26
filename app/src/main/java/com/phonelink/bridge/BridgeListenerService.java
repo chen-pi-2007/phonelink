@@ -81,7 +81,10 @@ public class BridgeListenerService extends NotificationListenerService {
             @Override public void onMetadataChanged(MediaMetadata m) { if (isCurrent(token)) pushState(); }
             @Override public void onPlaybackStateChanged(PlaybackState s) {
                 if (s != null && s.getState() == PlaybackState.STATE_PLAYING) {
-                    if (!playingSince.containsKey(token)) playingSince.put(token, SystemClock.elapsedRealtime());
+                    if (!playingSince.containsKey(token)) {
+                        playingSince.put(token, SystemClock.elapsedRealtime());
+                        if (out == null) kickConnect();
+                    }
                 } else {
                     playingSince.remove(token);
                 }
@@ -118,15 +121,15 @@ public class BridgeListenerService extends NotificationListenerService {
         });
         new Thread(this::connectLoop, "bt-connect").start();
         scheduleUpdateCheck(60_000L);
-        // 每秒推一次进度兜底（部分 App 不及时回调）
+        // 兜底轮询（省电）：连着副屏时每 5 秒校准一次进度，没连时每 30 秒查一下播放器；平时全靠事件回调
         h.postDelayed(new Runnable() {
             @Override public void run() {
                 if (!running) return;
                 pickController();
-                pushState();
-                h.postDelayed(this, 1000);
+                if (out != null) pushState();
+                h.postDelayed(this, out != null ? 5000 : 30000);
             }
-        }, 1000);
+        }, 5000);
     }
 
     @Override
@@ -205,6 +208,14 @@ public class BridgeListenerService extends NotificationListenerService {
                 it.remove();
             }
         }
+
+        boolean playingNow = false;
+        for (MediaController c : list) {
+            PlaybackState ps = c.getPlaybackState();
+            if (ps != null && ps.getState() == PlaybackState.STATE_PLAYING) playingNow = true;
+        }
+        if (playingNow && !anyPlaying && out == null) { anyPlaying = true; kickConnect(); }
+        anyPlaying = playingNow;
 
         MediaController best = null;
         // 1) 副屏手动固定的来源
@@ -389,8 +400,10 @@ public class BridgeListenerService extends NotificationListenerService {
         while (running) {
             String mac = Proto.prefs(this).getString(Proto.KEY_TARGET, null);
             if (ad == null) { status = "本机没有蓝牙"; return; }
-            if (mac == null) { status = "未选择副屏设备"; sleep(3000); continue; }
-            if (!ad.isEnabled()) { status = "蓝牙未开启"; sleep(3000); continue; }
+            if (mac == null) { status = "未选择副屏设备"; waitForKick(60_000); continue; }
+            if (!ad.isEnabled()) { status = "蓝牙未开启"; waitForKick(60_000); continue; }
+            // 省电：没有在播放时不去连副屏，等开始播放再连
+            if (!anyPlaying) { status = "没有在播放，暂停连接副屏（省电）"; waitForKick(5 * 60_000); if (!anyPlaying) continue; }
             try {
                 BluetoothDevice dev = ad.getRemoteDevice(mac);
                 status = "正在连接 " + dev.getName() + " …";
@@ -399,6 +412,7 @@ public class BridgeListenerService extends NotificationListenerService {
                 socket = s;
                 out = s.getOutputStream();
                 status = "已连接 " + dev.getName();
+                failures = 0;
                 artSent = false;
                 h.post(this::pushState);
                 BufferedReader r = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8));
@@ -417,11 +431,29 @@ public class BridgeListenerService extends NotificationListenerService {
                 status = "缺少蓝牙权限，请在 App 里授权";
                 sleep(5000);
             } catch (Exception e) {
-                status = "未连上副屏（" + e.getMessage() + "），重试中";
+                failures++;
+                status = "未连上副屏（" + e.getMessage() + "），稍后重试";
             }
             closeSocket();
-            sleep(3000);
+            // 失败退避：3s、6s、12s…最长 60s；开始播放时会被立即唤醒重试
+            waitForKick(Math.min(60_000L, 3000L << Math.min(failures, 5)));
         }
+    }
+
+    private volatile int failures;
+    private volatile boolean anyPlaying;
+    private final Object kick = new Object();
+
+    private void waitForKick(long ms) {
+        synchronized (kick) {
+            try { kick.wait(ms); } catch (InterruptedException ignored) {}
+        }
+    }
+
+    /** 开始播放 / 打开设置页时调用：立刻重试连接。 */
+    private void kickConnect() {
+        failures = 0;
+        synchronized (kick) { kick.notifyAll(); }
     }
 
     /** 副屏版本比主手机旧：把主手机自己装着的 APK 通过蓝牙发过去，副屏 root 静默安装。 */

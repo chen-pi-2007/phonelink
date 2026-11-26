@@ -81,8 +81,7 @@ def main():
     ]
     manifest = {"versionCode": code, "versionName": name, "notes": notes,
                 "sha256": sha, "size": apk.stat().st_size, "apk": urls}
-    (ROOT / "update.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "
-", encoding="utf-8")
+    (ROOT / "update.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     run("git", "add", "update.json")
     run("git", "commit", "-m", f"发布 v{name}" + (f"：{notes}" if notes else ""))
