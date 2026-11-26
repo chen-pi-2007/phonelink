@@ -119,6 +119,8 @@ public class BridgeListenerService extends NotificationListenerService {
             }
             pickController();
         });
+        nav = new NavBridge(this, o -> h.post(() -> send(o)));
+        nav.start();
         new Thread(this::serverLoop, "bt-server").start();
         scheduleUpdateCheck(60_000L);
         // 兜底轮询（省电）：连着副屏时每 5 秒校准一次进度，没连时每 30 秒查一下播放器；平时全靠事件回调
@@ -132,6 +134,18 @@ public class BridgeListenerService extends NotificationListenerService {
         }, 5000);
     }
 
+    private NavBridge nav;
+
+    @Override
+    public void onNotificationPosted(android.service.notification.StatusBarNotification sbn) {
+        if (nav != null) nav.onPosted(sbn);
+    }
+
+    @Override
+    public void onNotificationRemoved(android.service.notification.StatusBarNotification sbn) {
+        if (nav != null) nav.onRemoved(sbn);
+    }
+
     @Override
     public void onListenerDisconnected() {
         super.onListenerDisconnected();
@@ -142,6 +156,7 @@ public class BridgeListenerService extends NotificationListenerService {
     @Override
     public void onDestroy() {
         running = false;
+        if (nav != null) nav.stop();
         closeSocket();
         if (msm != null) msm.removeOnActiveSessionsChangedListener(sessionsListener);
         for (Map.Entry<MediaSession.Token, MediaController> e : watched.entrySet()) {
@@ -407,7 +422,7 @@ public class BridgeListenerService extends NotificationListenerService {
                 out = s.getOutputStream();
                 status = "已连接 " + s.getRemoteDevice().getName();
                 artSent = false;
-                h.post(() -> { pickController(); pushState(); });
+                h.post(() -> { pickController(); pushState(); if (nav != null) nav.resend(); });
                 BufferedReader r = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8));
                 String line;
                 while (running && (line = r.readLine()) != null) {

@@ -79,6 +79,20 @@ public class SourceActivity extends Activity {
             startActivity(i);
         }));
 
+        root.addView(btn("复制导航诊断记录（高德/百度/腾讯）", () -> {
+            try {
+                java.io.File f = NavBridge.logFile(this);
+                String txt = f.exists() ? new String(java.nio.file.Files.readAllBytes(f.toPath()), "UTF-8") : "";
+                if (txt.length() > 60000) txt = txt.substring(txt.length() - 60000);
+                android.content.ClipboardManager cm = getSystemService(android.content.ClipboardManager.class);
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("nav_log", txt));
+                android.widget.Toast.makeText(this, txt.isEmpty() ? "还没有记录，先用地图导航一段" : "已复制 " + txt.length() + " 字",
+                        android.widget.Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                android.widget.Toast.makeText(this, "复制失败：" + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+            }
+        }));
+
         CheckBox hide = new CheckBox(this);
         hide.setText("从最近任务中隐藏（类似 GKD）");
         hide.setTextSize(16);

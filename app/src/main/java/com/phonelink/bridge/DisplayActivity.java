@@ -51,7 +51,9 @@ public class DisplayActivity extends Activity {
     private SeekBar seek;
     private Button playBtn, queueBtn;
     private ScrollView queuePanel;
-    private LinearLayout sourceRow;
+    private LinearLayout sourceRow, navPanel;
+    private ImageView navIcon;
+    private TextView navTitle, navText, navSub;
     private String sourceSig;
     private LinearLayout queueList;
 
@@ -114,6 +116,27 @@ public class DisplayActivity extends Activity {
         sourceRow = new LinearLayout(this);
         hs.addView(sourceRow);
         root.addView(hs);
+
+        // 导航横幅：高德/百度/腾讯地图导航时显示，平时隐藏
+        navPanel = new LinearLayout(this);
+        navPanel.setBackgroundColor(0xFF0D3B2E);
+        navPanel.setPadding(dp(12), dp(12), dp(12), dp(12));
+        navPanel.setGravity(Gravity.CENTER_VERTICAL);
+        navPanel.setVisibility(View.GONE);
+        navIcon = new ImageView(this);
+        navPanel.addView(navIcon, new LinearLayout.LayoutParams(dp(88), dp(88)));
+        LinearLayout navTexts = new LinearLayout(this);
+        navTexts.setOrientation(LinearLayout.VERTICAL);
+        navTexts.setPadding(dp(12), 0, 0, 0);
+        navTitle = text(30, FG);
+        navTitle.setTypeface(Typeface.DEFAULT_BOLD);
+        navText = text(22, FG);
+        navSub = text(16, 0xFFB0D8C8);
+        navTexts.addView(navTitle);
+        navTexts.addView(navText);
+        navTexts.addView(navSub);
+        navPanel.addView(navTexts, new LinearLayout.LayoutParams(0, -2, 1f));
+        root.addView(navPanel);
 
         artView = new ImageView(this);
         artView.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -311,6 +334,32 @@ public class DisplayActivity extends Activity {
         } catch (Exception ignored) {}
     }
 
+    /** 导航时显示横幅并收起封面，给转向信息让位。o 为 null 或 end 时隐藏。 */
+    private void renderNav(JSONObject o) {
+        if (o == null || o.optBoolean("end")) {
+            navPanel.setVisibility(View.GONE);
+            artView.setVisibility(View.VISIBLE);
+            return;
+        }
+        navPanel.setVisibility(View.VISIBLE);
+        artView.setVisibility(View.GONE);
+        String title = o.optString("title");
+        String text = o.optString("text");
+        String big = o.optString("big");
+        navTitle.setText(title.isEmpty() ? o.optString("app") : title);
+        navText.setText(!text.isEmpty() ? text : big);
+        String sub = o.optString("sub");
+        String info = o.optString("info");
+        navSub.setText(o.optString("app") + (sub.isEmpty() ? "" : " · " + sub) + (info.isEmpty() ? "" : " · " + info));
+        if (o.has("icon")) {
+            byte[] b = Base64.decode(o.optString("icon"), Base64.DEFAULT);
+            navIcon.setImageBitmap(BitmapFactory.decodeByteArray(b, 0, b.length));
+            navIcon.setVisibility(View.VISIBLE);
+        } else {
+            navIcon.setVisibility(View.GONE);
+        }
+    }
+
     private String queueSig;
 
     private void renderQueue(JSONArray q) {
@@ -456,6 +505,7 @@ public class DisplayActivity extends Activity {
                             JSONObject o = new JSONObject(line);
                             String t = o.optString("t");
                             if ("state".equals(t)) ui.post(() -> render(o));
+                            else if ("nav".equals(t)) ui.post(() -> renderNav(o));
                             else onUpdatePacket(t, o);
                         } catch (Exception ignored) {}
                     }
@@ -465,6 +515,7 @@ public class DisplayActivity extends Activity {
                 }
                 closeQuietly();
                 connected = false;
+                ui.post(() -> renderNav(null));
                 if (foreground) {
                     ui.post(() -> titleView.setText("未连接主手机"));
                     // 前台时重试：2s、4s、8s，最长 10s
