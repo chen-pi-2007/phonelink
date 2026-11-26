@@ -1,0 +1,12 @@
+{
+  "versionCode": 2,
+  "versionName": "0.2.0",
+  "notes": "首个可自动更新版本；修复来源选错（番茄/QQ音乐）；来源显示App名而非包名；副屏来源切换",
+  "sha256": "9cec9bc32bb36fed9e4904e3f28806c7b8d32426c04acadff76bd75df0621c12",
+  "size": 36772,
+  "apk": [
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/main/dist/PhoneLink-v0.2.0.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.2.0/PhoneLink-v0.2.0.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.2.0/PhoneLink-v0.2.0.apk"
+  ]
+}
