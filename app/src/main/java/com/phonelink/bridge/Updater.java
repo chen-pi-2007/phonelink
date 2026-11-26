@@ -27,7 +27,7 @@ import java.security.MessageDigest;
  * 副屏：root 静默安装并自动重新打开。
  */
 final class Updater {
-    static final String GITEE_USER = "chen_pi_2007"; // TODO: 确认 Gitee 个人空间地址
+    static final String GITEE_USER = "Chenpi167";
     static final String REPO = "phonelink";
 
     static final String[] MANIFESTS = {

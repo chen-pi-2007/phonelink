@@ -20,7 +20,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 GITHUB = "chen-pi-2007/phonelink"
-JAVA_HOME = os.environ.get("JAVA_HOME") or r"D:\22490\jdk17\jdk-17.0.15+6"
+# 固定用 JDK 17（系统 JAVA_HOME 可能是 JDK 25，Gradle 8.13 不支持）
+JAVA_HOME = os.environ.get("PHONELINK_JAVA_HOME") or r"D:\22490\jdk17\jdk-17.0.15+6"
 
 
 def run(*cmd, **kw):
