@@ -1,13 +1,13 @@
 {
-  "versionCode": 3,
-  "versionName": "0.2.1",
-  "notes": "接入 Gitee 更新渠道，国内网络优先走 Gitee",
-  "sha256": "4a47b092eb0d8743eb76ee4cd77f7ead70aa8891979c49a5df48c799e718a6cc",
-  "size": 36720,
+  "versionCode": 4,
+  "versionName": "0.3.0",
+  "notes": "省电：没在播放时不连副屏、重连退避、降低轮询频率；副屏断开或暂停超过2分钟后允许灭屏，开始播放自动亮屏",
+  "sha256": "ff7d52beefaa25992683dfb0ba37238a54501857865f00972c5b26550b7679a4",
+  "size": 37448,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/201fa8e73a590e2a3f417839bc4bbc57eb944cd6/dist/PhoneLink-v0.2.1.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/201fa8e73a590e2a3f417839bc4bbc57eb944cd6/dist/PhoneLink-v0.2.1.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.2.1/PhoneLink-v0.2.1.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.2.1/PhoneLink-v0.2.1.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/d2ef941f37ed49b3fdca1fc87227c1160d794939/dist/PhoneLink-v0.3.0.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/d2ef941f37ed49b3fdca1fc87227c1160d794939/dist/PhoneLink-v0.3.0.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.3.0/PhoneLink-v0.3.0.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.3.0/PhoneLink-v0.3.0.apk"
   ]
 }
