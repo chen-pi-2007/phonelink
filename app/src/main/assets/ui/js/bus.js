@@ -73,6 +73,10 @@
       off.classList.add('show');
       document.getElementById('offline-title').textContent = m.name ? '正在寻找 ' + m.name : '正在寻找主手机';
     }
+    // 放弃自动重连后：波纹停下，显示“重新连接”按钮
+    off.classList.toggle('stopped', !m.up && !!m.gaveUp);
+    document.getElementById('reconnect').classList.toggle('hidden', !(!m.up && m.gaveUp));
+    if (!m.up && m.gaveUp) document.getElementById('offline-title').textContent = '已断开';
     wasUp = !!m.up;
     if (m.text && !m.up) document.getElementById('offline-text').textContent = m.text;
     var c = document.getElementById('conn');
@@ -109,6 +113,12 @@
     }
     setLm(lm);
     document.querySelectorAll('.lmode').forEach(function (el) { el.addEventListener('click', function () { setLm(el.dataset.m); }); });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('reconnect').addEventListener('click', function () {
+      if (window.PLNative && window.PLNative.reconnect) window.PLNative.reconnect();
+    });
   });
 
   // 设置面板

@@ -182,6 +182,31 @@ public class BridgeListenerService extends NotificationListenerService {
         }));
     }
 
+    // ---------- “车载蓝牙歌词”识别 ----------
+    // 开启后播放器（如 QQ 音乐）把当前一句歌词塞进标题，把“歌名-歌手”塞进歌手字段。
+    // 判定：同一首歌（时长、专辑不变）且进度连续，但标题在变 → 车载歌词模式；此时从歌手字段拆出真歌名。
+    private String ltPkg = "", ltAlbum = "", ltTitle = "";
+    private long ltDur = -1, ltPos;
+    private boolean carLyricMode;
+
+    private String[] fixCarLyrics(String pkg, MediaMetadata m, long pos) {
+        String title = str(m, MediaMetadata.METADATA_KEY_TITLE);
+        String artist = str(m, MediaMetadata.METADATA_KEY_ARTIST);
+        String album = str(m, MediaMetadata.METADATA_KEY_ALBUM);
+        long dur = m.getLong(MediaMetadata.METADATA_KEY_DURATION);
+        boolean sameTrack = pkg.equals(ltPkg) && dur > 0 && dur == ltDur && album.equals(ltAlbum);
+        if (!sameTrack) carLyricMode = false;
+        else if (!title.equals(ltTitle) && pos >= ltPos - 3000 && artist.contains("-")) carLyricMode = true;
+        ltPkg = pkg; ltAlbum = album; ltDur = dur; ltTitle = title; ltPos = pos;
+        if (carLyricMode) {
+            int dash = artist.indexOf('-');
+            String realTitle = artist.substring(0, dash).trim();
+            String realArtist = artist.substring(dash + 1).trim();
+            if (!realTitle.isEmpty()) return new String[]{realTitle, realArtist, title};
+        }
+        return new String[]{title, artist, null};
+    }
+
     /** 律动只在：已连接 + 正在播放 + 白名单 App + 有麦克风权限 时运行 */
     private void updateBeat(String pkg, boolean playing) {
         boolean want = out != null && playing && BEAT_PKGS.contains(pkg)
@@ -383,9 +408,17 @@ public class BridgeListenerService extends NotificationListenerService {
                 }
                 o.put("queue", arr);
             }
+            String effTitle = null, effArtist = null;
+            if (m != null) {
+                String[] fixed = fixCarLyrics(pkg, m, o.optLong("pos"));
+                effTitle = fixed[0];
+                effArtist = fixed[1];
+                o.put("title", effTitle);
+                o.put("artist", effArtist);
+                if (fixed[2] != null) o.put("line", fixed[2]); // 播放器塞进来的实时歌词
+            }
             send(o);
-            if (m != null) maybeFetchLyrics(pkg, str(m, MediaMetadata.METADATA_KEY_TITLE),
-                    str(m, MediaMetadata.METADATA_KEY_ARTIST), m.getLong(MediaMetadata.METADATA_KEY_DURATION));
+            if (m != null) maybeFetchLyrics(pkg, effTitle, effArtist, m.getLong(MediaMetadata.METADATA_KEY_DURATION));
             updateBeat(pkg, s != null && s.getState() == PlaybackState.STATE_PLAYING);
         } catch (Exception e) {
             Log.w(TAG, "pushState", e);

@@ -80,6 +80,7 @@ public class DisplayActivity extends Activity {
             startServer();
         }
         ui.post(progressTick);
+        ui.postDelayed(heartbeat, 3000);
         ui.postDelayed(this::onlineUpdateCheck, 30_000L);
     }
 
@@ -228,6 +229,8 @@ public class DisplayActivity extends Activity {
             public String version() { return Updater.myVersionName(DisplayActivity.this); }
             @android.webkit.JavascriptInterface
             public void checkUpdate() { ui.post(DisplayActivity.this::onlineUpdateCheckOnce); }
+            @android.webkit.JavascriptInterface
+            public void reconnect() { ui.post(DisplayActivity.this::resetReconnect); }
         }, "PLNative");
         web.setWebViewClient(new android.webkit.WebViewClient() {
             @Override public void onPageFinished(android.webkit.WebView v, String url) {
@@ -471,6 +474,7 @@ public class DisplayActivity extends Activity {
     protected void onResume() {
         super.onResume();
         foreground = true;
+        if (gaveUp) resetReconnect();
         synchronized (wake) { wake.notifyAll(); }
         if (web != null) web.onResume();
     }
@@ -500,6 +504,13 @@ public class DisplayActivity extends Activity {
             int failures = 0;
             while (running) {
                 if (!foreground) { waitWake(60_000); continue; }
+                if (gaveUp) { waitWake(60_000); continue; }
+                if (failingSince > 0 && SystemClock.elapsedRealtime() - failingSince > 120_000) {
+                    gaveUp = true;
+                    setStatus("已断开：2 分钟内没连上主手机，已停止自动重连（省电）");
+                    ui.post(this::pushConn);
+                    continue;
+                }
                 String mac = Proto.prefs(this).getString(Proto.KEY_TARGET, null);
                 if (mac == null) {
                     setStatus("请选择要连接的主手机（长按此处）");
@@ -523,6 +534,8 @@ public class DisplayActivity extends Activity {
                     client = s;
                     out = s.getOutputStream();
                     failures = 0;
+                    failingSince = 0;
+                    lastRxAt = SystemClock.elapsedRealtime();
                     setStatus("已连接 " + dev.getName());
                     connected = true;
                     connName = dev.getName();
@@ -534,6 +547,7 @@ public class DisplayActivity extends Activity {
                     BufferedReader r = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8));
                     String line;
                     while (running && (line = r.readLine()) != null) {
+                        lastRxAt = SystemClock.elapsedRealtime();
                         try {
                             JSONObject o = new JSONObject(line);
                             String t = o.optString("t");
@@ -546,9 +560,11 @@ public class DisplayActivity extends Activity {
                     }
                 } catch (Exception e) {
                     failures++;
-                    if (foreground) setStatus("连不上主手机（主手机 App 是否在后台运行？），稍后重试");
+                    if (failingSince == 0) failingSince = SystemClock.elapsedRealtime();
+                    if (foreground) setStatus("连不上主手机，正在重试…（最多 2 分钟）");
                 }
                 closeQuietly();
+                if (connected && failingSince == 0) failingSince = SystemClock.elapsedRealtime();
                 connected = false;
                 ui.post(this::pushConn);
                 ui.post(() -> renderNav(null));
@@ -671,6 +687,29 @@ public class DisplayActivity extends Activity {
     private boolean webReady;
     private String connName = "", lastStatus = "正在连接主手机…";
 
+    private volatile boolean gaveUp;
+    private volatile long failingSince, lastRxAt;
+
+    /** 用户点“重新连接”或重新打开 App：重新开始 2 分钟的重连窗口 */
+    private void resetReconnect() {
+        gaveUp = false;
+        failingSince = 0;
+        lastStatus = "正在连接主手机…";
+        pushConn();
+        synchronized (wake) { wake.notifyAll(); }
+    }
+
+    /** 心跳：连着时主手机至少每 5 秒发一次，12 秒没收到就判定断开（走远时系统要很久才报断开） */
+    private final Runnable heartbeat = new Runnable() {
+        @Override public void run() {
+            if (connected && lastRxAt > 0 && SystemClock.elapsedRealtime() - lastRxAt > 12_000) {
+                lastStatus = "与主手机失去联系";
+                closeQuietly(); // 让读循环抛异常退出，进入重连
+            }
+            ui.postDelayed(this, 3000);
+        }
+    };
+
     private void toWeb(String json) {
         if (web == null || !webReady) return;
         web.evaluateJavascript("PL.onMessage(" + JSONObject.quote(json) + ")", null);
@@ -683,6 +722,7 @@ public class DisplayActivity extends Activity {
             o.put("up", connected);
             o.put("name", connName);
             o.put("text", lastStatus);
+            o.put("gaveUp", gaveUp);
             toWeb(o.toString());
         } catch (Exception ignored) {}
     }

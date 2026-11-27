@@ -176,18 +176,18 @@ button::-moz-focus-inner { border: 0; }
 .radar { position: relative; width: 220px; height: 220px; margin-bottom: 34px; }
 .radar i { position: absolute; top: 50%; left: 50%; width: 220px; height: 220px; margin: -110px 0 0 -110px;
   border-radius: 50%; border: 2px solid rgba(127,216,255,.55); opacity: 0;
-  animation: ripple 2.4s cubic-bezier(.2,.6,.3,1) infinite; }
-.radar i:nth-child(2) { animation-delay: .8s; }
-.radar i:nth-child(3) { animation-delay: 1.6s; }
+  animation: ripple 4.2s cubic-bezier(.25,.6,.35,1) infinite; }
+.radar i:nth-child(2) { animation-delay: 1.4s; }
+.radar i:nth-child(3) { animation-delay: 2.8s; }
 @keyframes ripple { 0% { transform: scale(.25); opacity: .9; } 100% { transform: scale(1); opacity: 0; } }
 .radar-phone { position: absolute; top: 50%; left: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; fill: #fff;
-  filter: drop-shadow(0 0 14px rgba(127,216,255,.8)); animation: float 2.4s ease-in-out infinite; }
+  filter: drop-shadow(0 0 14px rgba(127,216,255,.8)); animation: float 4s ease-in-out infinite; }
 @keyframes float { 50% { transform: translateY(-6px); } }
 .off-title { font-size: 28px; font-weight: 700; }
 .off-text { font-size: 17px; color: var(--dim); margin-top: 10px; min-height: 24px; }
 .off-hint { font-size: 14px; color: rgba(255,255,255,.38); margin-top: 26px; line-height: 1.6; }
 /* 连上的瞬间：波纹变绿并加速 */
-.offline.linked .radar i { border-color: #4ade80; animation-duration: .9s; }
+.offline.linked .radar i { border-color: #4ade80; animation-duration: 1.8s; }
 .offline.linked .radar-phone { fill: #4ade80; filter: drop-shadow(0 0 22px #4ade80); }
 
 /* ---------- 开场动画 ---------- */
@@ -264,3 +264,12 @@ body.lyric-stage .ly.next { opacity: .32; transform: none; filter: blur(.5px); }
 body.lyric-stage .ly.cur { opacity: 1; font-size: 34px; font-weight: 800; transform: none; filter: none;
   text-shadow: 0 0 24px rgba(255,255,255,.45), 0 0 4px rgba(255,255,255,.6); }
 body.lyric-stage .ly.empty { opacity: 1; filter: none; transform: none; }
+
+/* 已停止自动重连：波纹静止变灰，显示重新连接按钮 */
+.offline.stopped .radar i { animation: none; opacity: .25; transform: scale(.7); border-color: rgba(255,255,255,.3); }
+.offline.stopped .radar-phone { fill: rgba(255,255,255,.5); filter: none; animation: none; }
+.reconnect { width: 70%; margin-top: 26px; }
+
+/* 播放器实时歌词（网易云搜不到时的兜底）：换句时轻轻浮入 */
+.ly.live { animation: liveIn .45s var(--ease-out); }
+@keyframes liveIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }

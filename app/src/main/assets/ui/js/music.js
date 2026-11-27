@@ -49,6 +49,13 @@
     $('pp').setAttribute('d', playing ? PAUSE : PLAY);
     document.body.classList.toggle('playing', playing);
     renderSources(s);
+    if (!lines.length && s.line) {
+      var inner = $('lyrics-inner'), d = inner.firstChild;
+      if (d && d.textContent !== s.line) {
+        d.className = 'ly cur live';
+        d.textContent = s.line;
+      }
+    }
   }
 
   function setArt(b64) {
