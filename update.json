@@ -1,13 +1,13 @@
 {
-  "versionCode": 12,
-  "versionName": "0.7.3",
-  "notes": "来源按钮显示App图标；连接标签精简；副屏新增设置面板（点右上角）",
-  "sha256": "8b5b1e29e9bf4c41e239decdc5012d324277ac36fed9ee2ea62ee93afa489db2",
-  "size": 78058,
+  "versionCode": 13,
+  "versionName": "0.7.4",
+  "notes": "歌词可上下滑动翻看、点一行跳到那里；更新后自动恢复通知使用权服务；顶部排版修复",
+  "sha256": "af201866d6b1dc4ae63b22072a4b45e19ac36ba79d021d47e8665cf7f594d385",
+  "size": 79086,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/fbabc3537c0714fbfa7adb69a7610827083c5b16/dist/PhoneLink-v0.7.3.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/fbabc3537c0714fbfa7adb69a7610827083c5b16/dist/PhoneLink-v0.7.3.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.3/PhoneLink-v0.7.3.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.3/PhoneLink-v0.7.3.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/b0afb48064ef5bc51dcbec5ffa02b714e0d3764b/dist/PhoneLink-v0.7.4.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/b0afb48064ef5bc51dcbec5ffa02b714e0d3764b/dist/PhoneLink-v0.7.4.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.4/PhoneLink-v0.7.4.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.4/PhoneLink-v0.7.4.apk"
   ]
 }
