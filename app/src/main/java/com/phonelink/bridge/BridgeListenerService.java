@@ -319,6 +319,12 @@ public class BridgeListenerService extends NotificationListenerService {
                 so.put("pkg", sc.getPackageName());
                 so.put("app", appLabel(sc.getPackageName()));
                 so.put("state", ps == null ? -1 : ps.getState());
+                // App 图标每个只发一次（副屏缓存），用于来源切换按钮
+                if (!iconSent.contains(sc.getPackageName())) {
+                    String ic = appIconB64(sc.getPackageName());
+                    if (ic != null) so.put("icon", ic);
+                    iconSent.add(sc.getPackageName());
+                }
                 ss.put(so);
             }
             o.put("sessions", ss);
@@ -412,6 +418,21 @@ public class BridgeListenerService extends NotificationListenerService {
     }
 
     private boolean artSent;
+    private final java.util.Set<String> iconSent = new java.util.HashSet<>();
+
+    private String appIconB64(String pkg) {
+        try {
+            android.graphics.drawable.Drawable d = getPackageManager().getApplicationIcon(pkg);
+            Bitmap b = Bitmap.createBitmap(72, 72, Bitmap.Config.ARGB_8888);
+            d.setBounds(0, 0, 72, 72);
+            d.draw(new android.graphics.Canvas(b));
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            b.compress(Bitmap.CompressFormat.PNG, 100, bos);
+            return Base64.encodeToString(bos.toByteArray(), Base64.NO_WRAP);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     private static String str(MediaMetadata m, String k) {
         CharSequence cs = m.getText(k);
@@ -485,6 +506,7 @@ public class BridgeListenerService extends NotificationListenerService {
                 out = s.getOutputStream();
                 status = "已连接 " + s.getRemoteDevice().getName();
                 artSent = false;
+                iconSent.clear();
                 h.post(() -> { pickController(); pushState(); if (nav != null) nav.resend(); if (lastLyrics != null) send(lastLyrics); });
                 BufferedReader r = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8));
                 String line;

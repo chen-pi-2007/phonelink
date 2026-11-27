@@ -56,6 +56,19 @@
   </main>
 
   <div id="dots" class="dots"><i class="on"></i><i></i></div>
+  <!-- 设置面板：点右上角连接标签打开 -->
+  <div id="settings" class="sheet">
+    <div class="sheet-card">
+      <div class="sheet-title">设置</div>
+      <div class="row"><span>主手机</span><b id="set-host">未连接</b></div>
+      <div class="row"><span>主手机版本</span><b id="set-hostver">-</b></div>
+      <div class="row"><span>副屏版本</span><b id="set-myver">-</b></div>
+      <button id="set-pick" class="sheet-btn">切换主手机</button>
+      <button id="set-update" class="sheet-btn">检查更新</button>
+      <button id="set-close" class="sheet-btn ghost">关闭</button>
+    </div>
+  </div>
+
   <div id="offline" class="offline show"><div class="spinner"></div><div id="offline-text">正在连接主手机…</div></div>
 
   <script src="js/lyrics.js"></script>

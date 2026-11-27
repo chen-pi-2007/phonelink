@@ -63,19 +63,23 @@
     nimg.src = 'data:image/jpeg;base64,' + b64;
   }
 
-  var srcSig = '';
+  var srcSig = '', icons = {}; // 包名 -> 图标（base64），主手机每个只发一次
   function renderSources(s) {
-    var ss = s.sessions || [], sig = JSON.stringify(ss) + s.pinned + s.pkg;
+    var ss = s.sessions || [];
+    ss.forEach(function (x) { if (x.icon) icons[x.pkg] = x.icon; });
+    var sig = ss.map(function (x) { return x.pkg + x.state; }).join() + s.pinned + s.pkg;
     if (sig === srcSig) return; srcSig = sig;
     var box = $('sources'); box.innerHTML = '';
     if (ss.length < 2) return;
-    function chip(label, on, pkg) {
-      var c = document.createElement('div'); c.className = 'chip' + (on ? ' on' : ''); c.textContent = label;
+    function chip(label, on, pkg, playing) {
+      var c = document.createElement('div'); c.className = 'chip' + (on ? ' on' : '') + (playing ? ' playing' : '');
+      if (icons[pkg]) { var im = document.createElement('img'); im.src = 'data:image/png;base64,' + icons[pkg]; c.appendChild(im); }
+      c.appendChild(document.createTextNode(label));
       c.onclick = function () { PL.send({ t: 'cmd', c: 'pin', p: pkg }); };
       box.appendChild(c);
     }
     chip('自动', !s.pinned, '');
-    ss.forEach(function (x) { chip((x.state === 3 ? '▶ ' : '') + x.app, x.pkg === s.pkg, x.pkg); });
+    ss.forEach(function (x) { chip(x.app, x.pkg === s.pkg, x.pkg, x.state === 3); });
   }
 
   // ---------------- 歌词 ----------------

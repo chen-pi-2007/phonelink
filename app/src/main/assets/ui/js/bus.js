@@ -32,7 +32,7 @@
   PL.on('state', function (s) {
     // 连接标签带上主手机版本（旧版主手机不发 ver，显示“需更新”）
     var c = document.getElementById('conn');
-    if (c.classList.contains('up')) c.textContent = '已连接 · ' + (connName || '主手机') + ' · ' + (s.ver ? 'v' + s.ver : '主手机需更新');
+    document.getElementById('set-hostver').textContent = s.ver ? 'v' + s.ver : '较旧，请在主手机上更新';
     var el = document.getElementById('alarm');
     if (s.nextAlarm && s.nextAlarm > Date.now()) {
       var a = new Date(s.nextAlarm);
@@ -48,8 +48,25 @@
     if (m.text) document.getElementById('offline-text').textContent = m.text;
     var c = document.getElementById('conn');
     connName = m.name || '';
-    c.textContent = m.up ? (m.name ? '已连接 · ' + m.name : '已连接') : '未连接';
+    c.textContent = m.up ? (m.name || '已连接') : '未连接';
+    document.getElementById('set-host').textContent = m.up ? (m.name || '已连接') : '未连接';
     c.classList.toggle('up', !!m.up);
+  });
+
+  // 设置面板
+  function openSettings(on) { document.getElementById('settings').classList.toggle('show', on); }
+  document.addEventListener('DOMContentLoaded', function () {
+    var N = window.PLNative;
+    document.getElementById('set-myver').textContent = N && N.version ? 'v' + N.version() : '演示模式';
+    document.getElementById('conn').addEventListener('click', function () { openSettings(true); });
+    document.getElementById('set-close').addEventListener('click', function () { openSettings(false); });
+    document.getElementById('settings').addEventListener('click', function (e) { if (e.target.id === 'settings') openSettings(false); });
+    document.getElementById('set-pick').addEventListener('click', function () { openSettings(false); if (N && N.pickHost) N.pickHost(); });
+    document.getElementById('set-update').addEventListener('click', function () {
+      var b = this;
+      if (N && N.checkUpdate) { N.checkUpdate(); b.textContent = '正在检查…（有新版会自动安装）'; }
+      setTimeout(function () { b.textContent = '检查更新'; }, 4000);
+    });
   });
 
   // 长按左上角时钟：选择主手机（原生弹面板）

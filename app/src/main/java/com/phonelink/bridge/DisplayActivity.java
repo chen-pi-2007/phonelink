@@ -224,6 +224,10 @@ public class DisplayActivity extends Activity {
             }
             @android.webkit.JavascriptInterface
             public void pickHost() { ui.post(DisplayActivity.this::showPicker); }
+            @android.webkit.JavascriptInterface
+            public String version() { return Updater.myVersionName(DisplayActivity.this); }
+            @android.webkit.JavascriptInterface
+            public void checkUpdate() { ui.post(DisplayActivity.this::onlineUpdateCheckOnce); }
         }, "PLNative");
         web.setWebViewClient(new android.webkit.WebViewClient() {
             @Override public void onPageFinished(android.webkit.WebView v, String url) {
@@ -626,6 +630,18 @@ public class DisplayActivity extends Activity {
         } catch (Exception e) {
             setStatus("接收更新失败：" + e.getMessage());
         }
+    }
+
+    /** 设置面板里手动检查：有新版就下载并 root 静默安装 */
+    private void onlineUpdateCheckOnce() {
+        new Thread(() -> {
+            Updater.Info info = Updater.fetchLatest();
+            if (info == null || info.versionCode <= Updater.myVersion(this)) return;
+            try {
+                java.io.File f = Updater.download(this, info, m -> {});
+                Updater.installRoot(this, f);
+            } catch (Exception ignored) {}
+        }, "update-manual").start();
     }
 
     private void onlineUpdateCheck() {
