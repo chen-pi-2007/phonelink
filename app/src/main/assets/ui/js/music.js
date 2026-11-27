@@ -116,10 +116,14 @@
     var i = L.indexAt(lines, pos);
     if (i !== curLine) {
       if (lyricEls[curLine]) lyricEls[curLine].classList.remove('cur', 'karaoke');
+      if (lyricEls[curLine + 1]) lyricEls[curLine + 1].classList.remove('next');
+      if (lyricEls[curLine]) lyricEls[curLine].classList.add('past');
       curLine = i;
       var el = lyricEls[i];
       if (el) {
+        el.classList.remove('past');
         el.classList.add('cur');
+        if (lyricEls[i + 1]) lyricEls[i + 1].classList.add('next');
         el.classList.add('karaoke'); // 有逐字时间按字扫亮，没有就按整行时长扫亮
         // 当前行滚到歌词框中间（弹簧缓动由 CSS 负责）
         if (performance.now() > userScrollUntil) centerLine(i, true);

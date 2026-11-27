@@ -243,3 +243,24 @@ body.theme-mono .controls .play { background: #fff; }
 body.theme-mono .chip, body.theme-mono .conn, body.theme-mono .gear { background: #1c1c1c; }
 body.theme-mono .chip.on { background: #fff; color: #000; }
 body.theme-mono .cover { box-shadow: none; }
+
+/* 新主题色块 */
+.theme.ghost { visibility: hidden; }
+.themes + .themes { margin-top: 4px; }
+.sw-halo { background: radial-gradient(circle at 30% 35%, rgba(255,180,120,.9), transparent 35%), radial-gradient(circle at 70% 65%, rgba(140,160,255,.9), transparent 38%), #120d1a; }
+.sw-planet { background: radial-gradient(circle at 60% 40%, #ffd28a 0 18%, transparent 19%), radial-gradient(ellipse 70% 18% at 60% 42%, transparent 60%, rgba(255,255,255,.7) 62%, transparent 70%), #070a14; }
+.sw-tunnel { background: repeating-radial-gradient(circle at 50% 50%, rgba(127,216,255,.9) 0 2px, transparent 3px 9px), #02030a; }
+.seg .lmode { flex: 1; text-align: center; padding: 10px 0; border-radius: 12px; font-size: 16px; color: var(--dim); background: rgba(255,255,255,.05); }
+.seg .lmode + .lmode { margin-left: 8px; }
+.seg .lmode.on { background: rgba(255,255,255,.92); color: #000; }
+#bg { transform-origin: 50% 45%; will-change: transform; }
+
+/* ===== 舞台歌词：中间一句大字发光，新句从下方带模糊浮上来，旧句向上淡出，下一句淡淡预告 ===== */
+body.lyric-stage .ly { text-align: center; transform-origin: center; opacity: 0; font-size: 24px;
+  transform: translateY(18px) scale(.9); filter: blur(6px);
+  transition: opacity .5s, transform .6s var(--ease-out), filter .5s, color .4s; }
+body.lyric-stage .ly.past { opacity: 0; transform: translateY(-22px) scale(.92); filter: blur(4px); }
+body.lyric-stage .ly.next { opacity: .32; transform: none; filter: blur(.5px); }
+body.lyric-stage .ly.cur { opacity: 1; font-size: 34px; font-weight: 800; transform: none; filter: none;
+  text-shadow: 0 0 24px rgba(255,255,255,.45), 0 0 4px rgba(255,255,255,.6); }
+body.lyric-stage .ly.empty { opacity: 1; filter: none; transform: none; }

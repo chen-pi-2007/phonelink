@@ -83,7 +83,7 @@
   });
 
   // 主题：flow 流光 / galaxy 星河 / vinyl 黑胶 / mono 日光（记在本机，下次打开沿用）
-  var THEMES = ['flow', 'galaxy', 'vinyl', 'mono'];
+  var THEMES = ['flow', 'galaxy', 'vinyl', 'mono', 'halo', 'planet', 'tunnel'];
   PL.setTheme = function (t) {
     if (THEMES.indexOf(t) < 0) t = 'flow';
     THEMES.forEach(function (x) { document.body.classList.toggle('theme-' + x, x === t); });
@@ -96,9 +96,19 @@
     var t = 'flow';
     try { t = localStorage.getItem('pl-theme') || 'flow'; } catch (e) {}
     PL.setTheme(t);
-    document.querySelectorAll('.theme').forEach(function (el) {
+    document.querySelectorAll('.theme[data-t]').forEach(function (el) {
       el.addEventListener('click', function () { PL.setTheme(el.dataset.t); });
     });
+    // 歌词样式：列表（Apple Music 式）/ 舞台（中间一句大字发光）
+    var lm = 'list';
+    try { lm = localStorage.getItem('pl-lyric') || 'list'; } catch (e) {}
+    function setLm(m) {
+      document.body.classList.toggle('lyric-stage', m === 'stage');
+      document.querySelectorAll('.lmode').forEach(function (el) { el.classList.toggle('on', el.dataset.m === m); });
+      try { localStorage.setItem('pl-lyric', m); } catch (e) {}
+    }
+    setLm(lm);
+    document.querySelectorAll('.lmode').forEach(function (el) { el.addEventListener('click', function () { setLm(el.dataset.m); }); });
   });
 
   // 设置面板
