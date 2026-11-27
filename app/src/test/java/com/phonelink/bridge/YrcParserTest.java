@@ -31,5 +31,8 @@ public class YrcParserTest {
         assertEquals(0, LyricsMatch.score("大风吹", "X", "晴天", Arrays.asList("周杰伦")));
         assertTrue(LyricsMatch.score("晴天", "周杰伦/某某", "晴天", Arrays.asList("周杰伦")) >= 140);
         assertEquals("晴天", LyricsMatch.normalize(" 晴天 - 伴奏 "));
+        // 翻唱上传常见格式：标题里夹人名和书名号，取《》里的歌名
+        assertEquals("人生起起落落", LyricsMatch.searchTitle("周子洋、仔仔《人生起起落落》（翻唱）"));
+        assertEquals("晴天", LyricsMatch.searchTitle("晴天"));
     }
 }

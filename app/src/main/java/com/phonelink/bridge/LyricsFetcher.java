@@ -48,7 +48,7 @@ final class LyricsFetcher {
             msg.put("t", "lyrics");
             msg.put("key", key);
             msg.put("lines", new JSONArray());
-            long id = search(title, artist);
+            long id = search(LyricsMatch.searchTitle(title), artist);
             if (id <= 0) return msg;
             JSONObject l = new JSONObject(get("https://music.163.com/api/song/lyric?id=" + id + "&lv=1&tv=-1&yv=1"));
             String yrc = l.optJSONObject("yrc") != null ? l.optJSONObject("yrc").optString("lyric") : "";

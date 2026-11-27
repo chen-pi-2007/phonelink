@@ -49,11 +49,34 @@
     pulse: function (e) { energy = Math.max(energy, Math.min(1, e)); }
   };
 
-  var punch = 0; // 电影镜头：节拍起点时轻推近 + 微震
+  // ---------- 电影镜头（按节拍事件驱动，无随机抖动） ----------
+  // 每个节拍是一个事件：快速推近(28ms) → 保持(30ms) → 平滑回落(185ms)，smoothstep 曲线；
+  // 冷却 460ms（特别强的拍可突破）；四拍循环强弱起伏；幅度按最近响度自适应；底层叠三个慢正弦漂移。
+  var events = [], lastHit = -1e9, beatIdx = 0, avgStrength = 0.5, punch = 0;
+  var CYCLE = [1.0, 0.62, 0.8, 0.58];
+  function smooth(x) { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }
+  function hit(e, now) {
+    if (now - lastHit < 460 && e < 0.68) return;
+    lastHit = now;
+    avgStrength = avgStrength * 0.9 + e * 0.1;
+    var k = Math.min(1.3, e / Math.max(0.25, avgStrength)) * CYCLE[beatIdx % 4];
+    events.push({ t: now, k: k, accent: e > 0.8, dir: (beatIdx * 137.5) % 360 < 180 ? 1 : -1 });
+    if (events.length > 8) events.shift();
+    beatIdx++;
+  }
+  function eventLevel(ev, now) {
+    var dt = now - ev.t;
+    if (dt < 28) return smooth(dt / 28) * ev.k;
+    if (dt < 58) return ev.k;
+    return (1 - smooth((dt - 58) / 185)) * ev.k;
+  }
   PL.on('beat', function (b) {
-    if (b.onset) { PL.bg.pulse(b.e); punch = Math.max(punch, Math.min(1, b.e)); }
+    if (b.onset) { PL.bg.pulse(b.e); hit(Math.min(1, b.e), performance.now()); }
     else energy = Math.max(energy, b.e * 0.5);
   });
+  // 没有真实节拍时（主手机未开律动），歌词换行也触发一次轻冲击
+  var _pulse = PL.bg.pulse;
+  PL.bg.pulse = function (e) { _pulse(e); if (!window.__hasBeat) hit(e * 0.7, performance.now()); };
 
   function lerp(a, b, t) { return a + (b - a) * t; }
   function setWrap() {
@@ -197,10 +220,16 @@
       return;
     }
     monoCleared = false;
-    // 电影镜头：推近 1~3.5%，最多 3px 微震，迅速回弹（骑车时不晃眼）
-    punch *= 0.82;
-    var shake = punch > 0.25 ? (Math.random() - 0.5) * 6 * punch : 0;
-    cv.style.transform = 'translate(' + shake.toFixed(1) + 'px,' + (shake * 0.6).toFixed(1) + 'px) scale(' + (1.01 + punch * 0.035).toFixed(4) + ')';
+    // 电影镜头：取最强的事件驱动推近；重音带极小的确定性滚转；叠加慢速漂移
+    var lvl = 0, roll = 0;
+    events = events.filter(function (ev) { return now - ev.t < 300; });
+    events.forEach(function (ev) {
+      var l = eventLevel(ev, now);
+      if (l > lvl) { lvl = l; roll = ev.accent ? ev.dir * 0.35 * l : 0; }
+    });
+    punch += (lvl - punch) * (lvl > punch ? 0.7 : 0.35); // 上升快、回落慢
+    var sx = Math.sin(t * 0.08) * 6, sy = Math.sin(t * 0.06 + 1) * 5, sz = Math.sin(t * 0.04 + 2) * 0.006;
+    cv.style.transform = 'translate(' + sx.toFixed(1) + 'px,' + sy.toFixed(1) + 'px) rotate(' + roll.toFixed(3) + 'deg) scale(' + (1.03 + sz + punch * 0.03).toFixed(4) + ')';
     if (theme === 'halo') { drawHalo(t); setWrap(); return; }
     if (theme === 'planet') { drawPlanet(t); setWrap(); return; }
     if (theme === 'tunnel') { drawTunnel(t); setWrap(); return; }
@@ -244,7 +273,8 @@
     // 封面随律动轻微呼吸（最大 3%）
     // 缩放加在外层容器上，不和封面拖动的位移冲突
     var wrap = document.getElementById('cover-wrap');
-    if (wrap) wrap.style.transform = 'scale(' + (1 + glow * 0.06).toFixed(4) + ')';
+    if (wrap) wrap.style.transform = 'scale(' + (1 + punch * 0.05).toFixed(4) + ')';
+    document.body.style.setProperty('--beat', punch.toFixed(3));
   }
 
   document.addEventListener('DOMContentLoaded', init);

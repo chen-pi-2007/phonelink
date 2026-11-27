@@ -24,13 +24,21 @@ final class BeatSource {
         if (viz != null) return;
         try {
             viz = new Visualizer(0);
-            viz.setCaptureSize(Visualizer.getCaptureSizeRange()[0] * 2);
+            viz.setCaptureSize(Math.min(1024, Visualizer.getCaptureSizeRange()[1])); // 频率分辨率足够分出低音
             viz.setDataCaptureListener(new Visualizer.OnDataCaptureListener() {
-                @Override public void onWaveFormDataCapture(Visualizer v, byte[] w, int rate) {
+                @Override public void onWaveFormDataCapture(Visualizer v, byte[] w, int rate) {}
+                /** 只听低音鼓：取 FFT 中约 38~160Hz 的能量做节拍检测（人声和高频不触发） */
+                @Override public void onFftDataCapture(Visualizer v, byte[] f, int samplingRate) {
+                    int n = f.length / 2;                       // 复数点数
+                    double binHz = samplingRate / 1000.0 / f.length; // samplingRate 单位是毫赫兹
+                    int lo = Math.max(1, (int) (38 / binHz)), hi = Math.max(lo + 1, Math.min(n - 1, (int) (160 / binHz)));
                     double sum = 0;
-                    for (byte x : w) { int s = (x & 0xff) - 128; sum += s * s; }
-                    double rms = Math.sqrt(sum / Math.max(1, w.length)) / 128.0;
-                    BeatDetector.Result r = detector.feed(rms, System.currentTimeMillis());
+                    for (int k = lo; k <= hi; k++) {
+                        double re = f[2 * k], im = f[2 * k + 1];
+                        sum += Math.sqrt(re * re + im * im);
+                    }
+                    double bass = sum / ((hi - lo + 1) * 128.0);
+                    BeatDetector.Result r = detector.feed(bass, System.currentTimeMillis());
                     try {
                         JSONObject o = new JSONObject();
                         o.put("t", "beat");
@@ -39,8 +47,7 @@ final class BeatSource {
                         sink.send(o);
                     } catch (Exception ignored) {}
                 }
-                @Override public void onFftDataCapture(Visualizer v, byte[] f, int rate) {}
-            }, Math.min(Visualizer.getMaxCaptureRate(), 20000), true, false); // 约 20 次/秒
+            }, Math.min(Visualizer.getMaxCaptureRate(), 20000), false, true); // 约 20 次/秒
             viz.setEnabled(true);
         } catch (Throwable e) {
             Log.w("PhoneLinkBeat", "Visualizer unavailable: " + e);

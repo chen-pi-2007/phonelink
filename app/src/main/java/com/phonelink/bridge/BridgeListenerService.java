@@ -547,9 +547,10 @@ public class BridgeListenerService extends NotificationListenerService {
                     try {
                         JSONObject cmd = new JSONObject(line);
                         if ("cmd".equals(cmd.optString("t"))) h.post(() -> handleCommand(cmd));
-                        else if ("hello".equals(cmd.optString("t"))
-                                && cmd.optInt("ver") < Updater.myVersion(this)) {
-                            new Thread(this::pushApkToDisplay, "apk-push").start();
+                        else if ("hello".equals(cmd.optString("t"))) {
+                            int dv = cmd.optInt("ver");
+                            if (dv < Updater.myVersion(this)) new Thread(this::pushApkToDisplay, "apk-push").start();
+                            else if (dv > Updater.myVersion(this)) h.post(() -> scheduleUpdateCheck(0)); // 副屏更新：主手机立即查新版并通知
                         }
                     } catch (Exception ignored) {}
                 }
@@ -596,8 +597,12 @@ public class BridgeListenerService extends NotificationListenerService {
     }
 
     /** 每 12 小时查一次新版本，有就发通知，点开设置页更新。 */
+    private long lastUpdateCheck;
+
     private void scheduleUpdateCheck(long delay) {
+        if (delay == 0 && SystemClock.elapsedRealtime() - lastUpdateCheck < 10 * 60_000L) return;
         h.postDelayed(() -> {
+            lastUpdateCheck = SystemClock.elapsedRealtime();
             if (!running) return;
             new Thread(() -> {
                 Updater.Info info = Updater.fetchLatest();
@@ -617,7 +622,7 @@ public class BridgeListenerService extends NotificationListenerService {
                             .build());
                 }
             }).start();
-            scheduleUpdateCheck(12 * 3600_000L);
+            if (delay != 0) scheduleUpdateCheck(12 * 3600_000L); // 立即检查不再额外排定时，避免叠加
         }, delay);
     }
 

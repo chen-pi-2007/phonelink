@@ -13,6 +13,13 @@ final class LyricsMatch {
                 .replaceAll("\\s+", "");
     }
 
+    /** 搜索用的歌名：标题里有《》（翻唱上传常见“某某《歌名》”）时取书名号里的内容 */
+    static String searchTitle(String title) {
+        if (title == null) return "";
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("《([^》]+)》").matcher(title);
+        return m.find() ? m.group(1).trim() : title.trim();
+    }
+
     static int score(String title, String artist, String candTitle, List<String> candArtists) {
         String a = normalize(title), b = normalize(candTitle);
         if (a.isEmpty() || b.isEmpty()) return 0;

@@ -20,7 +20,25 @@
   // ---------------- state ----------------
   PL.music = { render: render };
 
+  // 副屏侧兜底识别“车载蓝牙歌词”（旧版主手机不会处理）：
+  // 同一首歌（应用、时长、专辑不变）进度连续，标题却在变，且歌手字段是“歌名-歌手” → 标题其实是歌词
+  var lt = { pkg: '', album: '', dur: -1, title: '', pos: 0, car: false };
+  function fixCarLyrics(s) {
+    if (s.line || !s.title) return; // 新版主手机已处理
+    var same = s.pkg === lt.pkg && s.duration > 0 && s.duration === lt.dur && (s.album || '') === lt.album;
+    if (!same) lt.car = false;
+    else if (s.title !== lt.title && (s.pos || 0) >= lt.pos - 3000 && (s.artist || '').indexOf('-') > 0) lt.car = true;
+    lt.pkg = s.pkg; lt.album = s.album || ''; lt.dur = s.duration; lt.title = s.title; lt.pos = s.pos || 0;
+    if (lt.car) {
+      var a = s.artist, i = a.indexOf('-');
+      s.line = s.title;
+      s.title = a.slice(0, i).trim();
+      s.artist = a.slice(i + 1).trim();
+    }
+  }
+
   function render(s) {
+    fixCarLyrics(s);
     if (s.none) { $('title').textContent = '主手机没有在播放'; $('artist').textContent = ''; return; }
     var key = s.pkg + '|' + s.title + '|' + s.artist;
     var changed = key !== trackKey;

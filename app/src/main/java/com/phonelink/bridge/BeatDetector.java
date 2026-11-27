@@ -4,12 +4,12 @@ import java.util.ArrayDeque;
 
 /**
  * 节拍检测（纯 Java）：输入每帧音量能量，输出归一化强度和是否为节拍起点。
- * 强度 e = 当前能量 / 最近 3 秒峰值；起点 = 能量 > 最近 1 秒均值 × 1.35，且 > 0.02，且距上次起点 > 220ms。
+ * 强度 e = 当前能量 / 最近 3 秒峰值；起点 = 能量 > 最近 1 秒均值 × 1.35，且 > 0.02，且距上次起点 > 460ms（强拍 > 220ms）。
  */
 final class BeatDetector {
     static final class Result { double e; boolean onset; }
 
-    private static final long PEAK_WINDOW = 3000, AVG_WINDOW = 1000, REFRACTORY = 220;
+    private static final long PEAK_WINDOW = 3000, AVG_WINDOW = 1000, REFRACTORY = 460; // 冷却 460ms，防止连击
     private static final double RATIO = 1.35, FLOOR = 0.02;
 
     private final ArrayDeque<long[]> hist = new ArrayDeque<>(); // {时间, 能量×1e6}
@@ -27,7 +27,8 @@ final class BeatDetector {
         Result r = new Result();
         r.e = peak > 0 ? Math.min(1, energy / peak) : 0;
         double avg = n > 0 ? sum / n : energy;
-        if (n > 0 && energy > FLOOR && energy > avg * RATIO && now - lastOnset > REFRACTORY) {
+        boolean strong = peak > 0 && energy / peak > 0.85; // 特别强的拍可突破冷却
+        if (n > 0 && energy > FLOOR && energy > avg * RATIO && (now - lastOnset > REFRACTORY || (strong && now - lastOnset > 220))) {
             r.onset = true;
             lastOnset = now;
         }
