@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>手机副屏</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <!-- 顶部常驻：时钟 + 闹钟 + 连接状态 -->
+  <header id="topbar">
+    <div class="clock"><span id="clock">--:--</span><span id="alarm" class="alarm hidden"></span></div>
+    <div id="conn" class="conn">未连接</div>
+  </header>
+
+  <!-- 导航插播提示条（停在音乐页时从顶部滑下） -->
+  <div id="nav-pill" class="nav-pill">
+    <img id="pill-icon" alt=""><div class="pill-text"><b id="pill-dist"></b><span id="pill-road"></span></div>
+  </div>
+
+  <main id="pages">
+    <!-- 第 1 页：音乐 -->
+    <section class="page page-music">
+      <div id="sources" class="sources"></div>
+      <div id="cover-wrap" class="cover-wrap">
+        <div id="cover" class="cover"><img id="cover-img" alt=""><div class="cover-ph shimmer"></div></div>
+      </div>
+      <div class="meta">
+        <div id="title" class="title">未连接</div>
+        <div id="artist" class="artist"></div>
+      </div>
+      <div id="lyrics" class="lyrics"><div id="lyrics-inner"></div></div>
+      <div class="progress"><div id="bar"><i id="bar-fill"></i></div>
+        <div class="times"><span id="t-pos">0:00</span><span id="t-dur">0:00</span></div></div>
+      <div class="controls">
+        <button data-cmd="seekBy" data-v="-15000" class="small">−15</button>
+        <button data-cmd="prev"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12 18 18V6z"/></svg></button>
+        <button data-cmd="toggle" class="play"><svg viewBox="0 0 24 24"><path id="pp" d="M8 5v14l11-7z"/></svg></button>
+        <button data-cmd="next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+        <button data-cmd="seekBy" data-v="15000" class="small">+15</button>
+      </div>
+    </section>
+
+    <!-- 第 2 页：导航 -->
+    <section class="page page-nav">
+      <div id="nav-empty" class="nav-empty">主手机未在导航<br><small>上滑回到音乐</small></div>
+      <div id="nav-live" class="nav-live hidden">
+        <div class="turn"><img id="nav-icon" alt=""><svg id="nav-arrow" viewBox="0 0 24 24"><path d="M12 3 5 10h4v11h6V10h4z"/></svg></div>
+        <div id="nav-dist" class="nav-dist"></div>
+        <div id="nav-road" class="nav-road"></div>
+        <div id="nav-sub" class="nav-sub"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="dots" class="dots"><i class="on"></i><i></i></div>
+  <div id="offline" class="offline show"><div class="spinner"></div><div id="offline-text">正在连接主手机…</div></div>
+
+  <script src="js/lyrics.js"></script>
+  <script src="js/gesture.js"></script>
+  <script src="js/bus.js"></script>
+  <script src="js/bg.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/demo.js"></script>
+</body>
+</html>
