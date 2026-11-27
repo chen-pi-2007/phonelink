@@ -8,6 +8,7 @@
 </head>
 <body>
   <canvas id="bg"></canvas>
+  <canvas id="gl"></canvas>
 
   <!-- 顶部常驻：时钟 + 闹钟 + 连接状态 -->
   <header id="topbar">
@@ -73,6 +74,14 @@
         <div class="theme" data-t="vinyl"><i class="sw sw-vinyl"></i>黑胶</div>
         <div class="theme" data-t="mono"><i class="sw sw-mono"></i>日光</div>
       </div>
+      <div class="theme-label">3D 主题（真立体，耗电略高）</div>
+      <div class="themes">
+        <div class="theme" data-t="dust"><i class="sw sw-dust"></i>封面星尘</div>
+        <div class="theme" data-t="nebula"><i class="sw sw-nebula"></i>星云隧道</div>
+        <div class="theme" data-t="rain"><i class="sw sw-rain"></i>雨夜霓虹</div>
+        <div class="theme ghost"></div>
+      </div>
+      <div class="theme-label">平面主题</div>
       <div class="themes">
         <div class="theme" data-t="halo"><i class="sw sw-halo"></i>光晕</div>
         <div class="theme" data-t="planet"><i class="sw sw-planet"></i>行星</div>
@@ -112,7 +121,9 @@
   <script src="js/lyrics.js"></script>
   <script src="js/gesture.js"></script>
   <script src="js/bus.js"></script>
+  <script src="lib/three.min.js"></script>
   <script src="js/bg.js"></script>
+  <script src="js/gl.js"></script>
   <script src="js/music.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/intro.js"></script>

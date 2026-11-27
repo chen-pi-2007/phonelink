@@ -58,6 +58,11 @@
     el.classList.remove('hidden');
   }
   setInterval(renderAlarm, 15000);
+  // 最后 5 分钟：每秒切一次高亮（代替逐帧动画，省电）
+  setInterval(function () {
+    var el = document.getElementById('alarm');
+    if (el.classList.contains('urgent')) el.classList.toggle('blink'); else el.classList.remove('blink');
+  }, 1000);
 
   /** 连接状态：遮罩淡入淡出 */
   var wasUp = false;
@@ -87,7 +92,7 @@
   });
 
   // 主题：flow 流光 / galaxy 星河 / vinyl 黑胶 / mono 日光（记在本机，下次打开沿用）
-  var THEMES = ['flow', 'galaxy', 'vinyl', 'mono', 'halo', 'planet', 'tunnel'];
+  var THEMES = ['flow', 'galaxy', 'vinyl', 'mono', 'halo', 'planet', 'tunnel', 'dust', 'nebula', 'rain'];
   PL.setTheme = function (t) {
     if (THEMES.indexOf(t) < 0) t = 'flow';
     THEMES.forEach(function (x) { document.body.classList.toggle('theme-' + x, x === t); });

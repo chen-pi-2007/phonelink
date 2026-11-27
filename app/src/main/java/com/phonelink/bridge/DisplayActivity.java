@@ -232,6 +232,13 @@ public class DisplayActivity extends Activity {
             @android.webkit.JavascriptInterface
             public void reconnect() { ui.post(DisplayActivity.this::resetReconnect); }
         }, "PLNative");
+        // 网页控制台输出到系统日志（标签 PhoneLinkJS），方便排查
+        web.setWebChromeClient(new android.webkit.WebChromeClient() {
+            @Override public boolean onConsoleMessage(android.webkit.ConsoleMessage m) {
+                android.util.Log.d("PhoneLinkJS", m.messageLevel() + " " + m.message() + " @" + m.sourceId() + ":" + m.lineNumber());
+                return true;
+            }
+        });
         web.setWebViewClient(new android.webkit.WebViewClient() {
             @Override public void onPageFinished(android.webkit.WebView v, String url) {
                 webReady = true;

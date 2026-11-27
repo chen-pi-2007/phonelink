@@ -18,7 +18,7 @@
     small = document.createElement('canvas'); small.width = 48; small.height = 80; sg = small.getContext('2d');
     resize(); addEventListener('resize', resize);
     for (var i = 0; i < 60; i++) parts.push(newPart(true));
-    requestAnimationFrame(frame);
+    schedule(33);
   }
 
   function newPart(anywhere) {
@@ -45,7 +45,9 @@
     setCover: function (img) {
       var target = img ? extract(img) : [[30, 34, 44], [24, 28, 38], [36, 40, 52]];
       from = cur.map(function (c) { return c.slice(); }); to = target; mixT = 0; mixStart = performance.now();
+      if (PL.gl) PL.gl.setCover(img, target); // 3D 主题用封面像素和主色
     },
+    state: { punch: 0, glow: 0 },
     pulse: function (e) { energy = Math.max(energy, Math.min(1, e)); }
   };
 
@@ -199,9 +201,12 @@
     g.fillStyle = sh; g.fillRect(0, 0, W, H);
   }
 
+  // 省电：不用“每帧回调”空转，按需要的帧率定时排下一帧（日光主题 1 次/秒，后台 2 次/秒检查）
+  function schedule(ms) { setTimeout(function () { requestAnimationFrame(frame); }, ms); }
   function frame(now) {
-    requestAnimationFrame(frame);
-    if (document.hidden || now - last < 33) return;   // 30 帧上限，后台不画
+    if (document.hidden) { schedule(500); return; }
+    var th = PL.theme || 'flow';
+    schedule(th === 'mono' ? 1000 : document.body.classList.contains('playing') ? 33 : 100); // 暂停时 10 帧
     last = now;
     // 换歌颜色 800ms 过渡
     if (mixT < 1) {
@@ -228,6 +233,8 @@
       if (l > lvl) { lvl = l; roll = ev.accent ? ev.dir * 0.35 * l : 0; }
     });
     punch += (lvl - punch) * (lvl > punch ? 0.7 : 0.35); // 上升快、回落慢
+    PL.bg.state.punch = punch; PL.bg.state.glow = glow;
+    if (PL.gl && PL.gl.isGl(theme)) { if (punch > 0.01) setWrap(); return; } // 3D 主题由 gl.js 渲染，这里只算节拍
     var sx = Math.sin(t * 0.08) * 6, sy = Math.sin(t * 0.06 + 1) * 5, sz = Math.sin(t * 0.04 + 2) * 0.006;
     cv.style.transform = 'translate(' + sx.toFixed(1) + 'px,' + sy.toFixed(1) + 'px) rotate(' + roll.toFixed(3) + 'deg) scale(' + (1.03 + sz + punch * 0.03).toFixed(4) + ')';
     if (theme === 'halo') { drawHalo(t); setWrap(); return; }
@@ -273,7 +280,8 @@
     // 封面随律动轻微呼吸（最大 3%）
     // 缩放加在外层容器上，不和封面拖动的位移冲突
     var wrap = document.getElementById('cover-wrap');
-    if (wrap) wrap.style.transform = 'scale(' + (1 + punch * 0.05).toFixed(4) + ')';
+    var sc = 'scale(' + (1 + punch * 0.05).toFixed(3) + ')';
+    if (wrap && wrap._sc !== sc) { wrap.style.transform = sc; wrap._sc = sc; }
     document.body.style.setProperty('--beat', punch.toFixed(3));
   }
 

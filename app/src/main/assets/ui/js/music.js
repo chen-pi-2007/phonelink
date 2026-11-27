@@ -156,7 +156,7 @@
       }
     }
     var cur = lyricEls[curLine];
-    if (cur) cur.style.setProperty('--p', L.wordProgress(lines[curLine], pos).toFixed(3));
+    if (cur && playing) cur.style.setProperty('--p', L.wordProgress(lines[curLine], pos).toFixed(2));
   }
   PL.on('beat', function () { window.__hasBeat = true; });
 
@@ -195,13 +195,19 @@
   };
 
   // ---------------- 进度循环 ----------------
-  function loop() {
-    requestAnimationFrame(loop);
+  // 省电：不再每帧改动页面。歌词扫亮 15 次/秒，进度条和时间只在数值变化时更新
+  var lastBar = '', lastPos = '', lastDur = '', lastLoop = 0;
+  function loop(now) {
+    setTimeout(function () { requestAnimationFrame(loop); }, document.hidden ? 1000 : playing ? 66 : 500);
     if (document.hidden) return;
+    lastLoop = now;
     var pos = Math.min(nowPos(), dur || Infinity);
     if (dur > 0) {
-      $('bar-fill').style.width = (pos / dur * 100).toFixed(2) + '%';
-      $('t-pos').textContent = fmt(pos); $('t-dur').textContent = fmt(dur);
+      var w = (pos / dur * 100).toFixed(1) + '%';
+      if (w !== lastBar) { $('bar-fill').style.width = w; lastBar = w; }
+      var fp = fmt(pos), fd = fmt(dur);
+      if (fp !== lastPos) { $('t-pos').textContent = fp; lastPos = fp; }
+      if (fd !== lastDur) { $('t-dur').textContent = fd; lastDur = fd; }
     }
     tickLyrics(pos);
   }
@@ -271,7 +277,7 @@
     var sx, sy, st0, axis, lastX, lastY, lastT, vx, vy, active = false, onCover = false, onLyrics = false;
     var pages = $('pages'), cover = $('cover');
     document.addEventListener('pointerdown', function (e) {
-      if (e.target.closest('button, .chip, .nav-pill, .clock, .progress')) return;
+      if (e.target.closest('button, .chip, .nav-pill, .clock, .progress, .sheet, .offline.show')) return;
       active = true; axis = null; sx = lastX = e.clientX; sy = lastY = e.clientY; st0 = lastT = performance.now(); vx = vy = 0;
       onCover = page === 0 && !!e.target.closest('.now, .lyrics');
       onLyrics = page === 0 && !!e.target.closest('.lyrics') && lyricEls.length > 0;
