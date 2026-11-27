@@ -1,13 +1,13 @@
 {
-  "versionCode": 19,
-  "versionName": "0.9.3",
-  "notes": "主手机支持后台自动更新（首次需确认一次，之后自动）；副屏提示主手机版本过旧；断开界面简化",
-  "sha256": "bb2944d791a39491951251619eba833ba06f86c373cfa42b28aaad795c35f130",
-  "size": 92529,
+  "versionCode": 20,
+  "versionName": "0.9.4",
+  "notes": "主手机界面重做；更省电（没连副屏时零轮询）；主手机需更新时副屏标签变黄；副屏有新版时齿轮亮红点",
+  "sha256": "8a986d12af5c539b1e5eebf1d6d9086f3b51b0f5bc05323c3b044a78857ac57e",
+  "size": 97104,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/4538121d38faf98147388c9a5ed882e4260ca29f/dist/PhoneLink-v0.9.3.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/4538121d38faf98147388c9a5ed882e4260ca29f/dist/PhoneLink-v0.9.3.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.3/PhoneLink-v0.9.3.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.3/PhoneLink-v0.9.3.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/9944cbade68c867fb0f7cbd583624902c0346d11/dist/PhoneLink-v0.9.4.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/9944cbade68c867fb0f7cbd583624902c0346d11/dist/PhoneLink-v0.9.4.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.4/PhoneLink-v0.9.4.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.4/PhoneLink-v0.9.4.apk"
   ]
 }
