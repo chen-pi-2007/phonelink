@@ -32,6 +32,7 @@ import java.util.Set;
  */
 final class NavBridge {
     interface Sink { void send(JSONObject o); }
+    interface Connected { boolean get(); }
 
     // 不用 Set.of（安卓 11 才有），兼容更老的系统
     static final Set<String> MAP_PKGS = new java.util.HashSet<>(java.util.Arrays.asList(
@@ -53,9 +54,12 @@ final class NavBridge {
     private long lastBroadcastAt;
     private BroadcastReceiver amapReceiver;
 
-    NavBridge(Context ctx, Sink sink) {
+    private final Connected connected;
+
+    NavBridge(Context ctx, Sink sink, Connected connected) {
         this.ctx = ctx;
         this.sink = sink;
+        this.connected = connected;
     }
 
     void start() {
@@ -81,6 +85,7 @@ final class NavBridge {
 
     void onPosted(StatusBarNotification sbn) {
         if (!MAP_PKGS.contains(sbn.getPackageName())) return;
+        if (!connected.get()) { if (sbn.isOngoing()) lastNotifKey = sbn.getKey(); return; } // 省电：没连副屏不处理
         Notification n = sbn.getNotification();
         Bundle ex = n.extras;
         log("notif " + sbn.getPackageName() + " ongoing=" + sbn.isOngoing() + " " + dump(ex));
@@ -112,7 +117,7 @@ final class NavBridge {
 
     private void onAmapBroadcast(Intent i) {
         Bundle ex = i.getExtras();
-        if (ex == null) return;
+        if (ex == null || !connected.get()) return; // 省电：没连副屏不处理
         log("amap-broadcast " + dump(ex));
         int type = ex.getInt("KEY_TYPE", -1);
         try {

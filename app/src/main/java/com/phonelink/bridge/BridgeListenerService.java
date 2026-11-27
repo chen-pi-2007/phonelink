@@ -130,22 +130,24 @@ public class BridgeListenerService extends NotificationListenerService {
             }
             pickController();
         });
-        nav = new NavBridge(this, o -> h.post(() -> send(o)));
+        nav = new NavBridge(this, o -> h.post(() -> send(o)), () -> out != null);
         nav.start();
         new Thread(this::serverLoop, "bt-server").start();
         scheduleUpdateCheck(60_000L);
         // 兜底轮询（省电）：连着副屏时每 5 秒校准一次进度，没连时每 30 秒查一下播放器；平时全靠事件回调
-        h.postDelayed(new Runnable() {
+        // 兜底轮询只在连着副屏时进行（每 5 秒校准进度）；没连时完全靠系统回调，不额外唤醒 CPU
+        connectedTick = new Runnable() {
             @Override public void run() {
-                if (!running) return;
+                if (!running || out == null) return;
                 pickController();
-                if (out != null) pushState();
-                h.postDelayed(this, out != null ? 5000 : 60000);
+                pushState();
+                h.postDelayed(this, 5000);
             }
-        }, 5000);
+        };
     }
 
     private NavBridge nav;
+    private Runnable connectedTick;
     private final LyricsFetcher lyrics = new LyricsFetcher();
     private String lyricKey;
     private JSONObject lastLyrics;
@@ -541,7 +543,13 @@ public class BridgeListenerService extends NotificationListenerService {
                 status = "已连接 " + s.getRemoteDevice().getName();
                 artSent = false;
                 iconSent.clear();
-                h.post(() -> { pickController(); pushState(); if (nav != null) nav.resend(); if (lastLyrics != null) send(lastLyrics); });
+                h.post(() -> {
+                    pickController(); pushState();
+                    if (nav != null) nav.resend();
+                    if (lastLyrics != null) send(lastLyrics);
+                    h.removeCallbacks(connectedTick);
+                    h.postDelayed(connectedTick, 5000);
+                });
                 BufferedReader r = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8));
                 String line;
                 while (running && (line = r.readLine()) != null) {

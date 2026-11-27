@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>手机副屏 · 主手机</title>
+<style>
+  /* 兼容旧内核：不用 inset / aspect-ratio / flex gap / backdrop-filter */
+  :root { --dim: rgba(255,255,255,.6); --card: rgba(255,255,255,.06); --line: rgba(255,255,255,.08);
+    --ok: #4ade80; --warn: #ffbe46; --bad: #ff5a5f; --ease: cubic-bezier(.16,1,.3,1); }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: #07090d; color: #fff; font-family: "PingFang SC","MiSans","Noto Sans SC",system-ui,sans-serif; }
+  body { padding: max(18px, env(safe-area-inset-top)) 18px 40px;
+    background: radial-gradient(circle at 80% -10%, rgba(80,120,255,.22), transparent 55%),
+                radial-gradient(circle at 0% 30%, rgba(160,80,255,.14), transparent 50%), #07090d; min-height: 100vh; }
+  button, *:focus { outline: none; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: .5px; }
+  .sub { color: var(--dim); font-size: 14px; margin-top: 4px; }
+
+  /* 状态大卡片 */
+  .hero { margin: 18px 0 14px; padding: 20px; border-radius: 24px; background: linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+    border: 1px solid var(--line); display: flex; align-items: center; animation: rise .5s var(--ease); }
+  .orb { flex: none; width: 58px; height: 58px; border-radius: 29px; margin-right: 16px; position: relative;
+    background: radial-gradient(circle at 35% 35%, #fff, var(--c, #888) 45%, rgba(0,0,0,.2)); box-shadow: 0 0 24px var(--c, #888); }
+  .orb::after { content: ''; position: absolute; top: -8px; left: -8px; right: -8px; bottom: -8px; border-radius: 50%;
+    border: 2px solid var(--c, #888); opacity: .5; animation: pulse 3.2s ease-out infinite; }
+  @keyframes pulse { from { transform: scale(.8); opacity: .6; } to { transform: scale(1.35); opacity: 0; } }
+  .hero b { font-size: 22px; display: block; }
+  .hero span { color: var(--dim); font-size: 14px; display: block; margin-top: 4px; line-height: 1.5; }
+
+  .section { margin: 22px 0 10px; font-size: 14px; color: var(--dim); letter-spacing: 1px; }
+  .card { border-radius: 20px; background: var(--card); border: 1px solid var(--line); overflow: hidden; animation: rise .5s var(--ease) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .item { display: flex; align-items: center; padding: 15px 16px; border-top: 1px solid var(--line); }
+  .item:first-child { border-top: 0; }
+  .item:active { background: rgba(255,255,255,.05); }
+  .ic { flex: none; width: 36px; height: 36px; border-radius: 11px; margin-right: 14px; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.08); }
+  .ic svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .txt { flex: 1; min-width: 0; }
+  .txt b { font-size: 16px; font-weight: 600; display: block; }
+  .txt small { font-size: 13px; color: var(--dim); display: block; margin-top: 2px; }
+  .badge { flex: none; font-size: 13px; font-weight: 700; padding: 5px 10px; border-radius: 99px; }
+  .badge.ok { color: var(--ok); background: rgba(74,222,128,.12); }
+  .badge.todo { color: #1a1200; background: var(--warn); }
+  .badge.opt { color: var(--dim); background: rgba(255,255,255,.08); }
+  .chev { flex: none; width: 8px; height: 8px; border-right: 2px solid var(--dim); border-top: 2px solid var(--dim); transform: rotate(45deg); margin-left: 10px; }
+
+  /* 开关 */
+  .sw { flex: none; width: 48px; height: 28px; border-radius: 14px; background: rgba(255,255,255,.18); position: relative; transition: background .25s; }
+  .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 11px; background: #fff; transition: transform .3s var(--ease); }
+  .sw.on { background: var(--ok); }
+  .sw.on::after { transform: translateX(20px); }
+
+  .upd b .new { color: var(--warn); }
+  .foot { text-align: center; color: rgba(255,255,255,.35); font-size: 12px; margin-top: 26px; line-height: 1.7; }
+  .toast { position: fixed; left: 50%; bottom: 40px; transform: translate(-50%, 30px); opacity: 0; padding: 12px 18px; border-radius: 14px;
+    background: rgba(30,34,42,.96); font-size: 15px; transition: opacity .3s, transform .4s var(--ease); pointer-events: none; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+  <h1>主手机</h1>
+  <div class="sub">放在口袋里就行，副屏打开时会自动连过来</div>
+
+  <div class="hero">
+    <div id="orb" class="orb"></div>
+    <div><b id="st-title">检查中…</b><span id="st-text"></span></div>
+  </div>
+
+  <div class="section">准备清单</div>
+  <div class="card" id="setup"></div>
+
+  <div class="section">更新</div>
+  <div class="card">
+    <div class="item upd" id="upd"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></div>
+      <div class="txt"><b id="upd-title">检查更新</b><small id="upd-sub"></small></div><i class="chev"></i></div>
+  </div>
+
+  <div class="section">更多</div>
+  <div class="card">
+    <div class="item" id="hide"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A9.8 9.8 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3 4.2M6.6 6.6C4.3 8 2.7 10.1 2 12c1 2.5 5 7 10 7 1.6 0 3.1-.4 4.4-1.1"/></svg></div>
+      <div class="txt"><b>从最近任务中隐藏</b><small>后台更隐蔽，像 GKD 那样</small></div><i class="sw" id="hide-sw"></i></div>
+    <div class="item" data-act="beatTest"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12h3l3-8 4 16 3-8h5"/></svg></div>
+      <div class="txt"><b>律动测试</b><small>看能不能拿到音乐节拍</small></div><i class="chev"></i></div>
+    <div class="item" data-act="copyNavLog"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2l7 20-7-4-7 4z"/></svg></div>
+      <div class="txt"><b>复制导航诊断记录</b><small>高德 / 百度 / 腾讯地图</small></div><i class="chev"></i></div>
+    <div class="item" data-act="switchMode"><div class="ic"><svg viewBox="0 0 24 24"><path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2"/></svg></div>
+      <div class="txt"><b>切换为副屏模式</b><small>把这台手机当成副屏</small></div><i class="chev"></i></div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var N = window.PLNative;
+  var $ = function (id) { return document.getElementById(id); };
+  var ICON = {
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+    bt: '<path d="M7 7l10 10-5 5V2l5 5L7 17"/>',
+    bat: '<rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2M6 11v2"/>',
+    bg: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    wave: '<path d="M2 12h2M6 8v8M10 5v14M14 8v8M18 10v4M22 12h0"/>'
+  };
+  function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('show'); }, 2200); }
+  window.PLS = { toast: toast };
+
+  // 准备清单：每项 状态 + 点一下去处理
+  function render() {
+    var s = JSON.parse(N.status());
+    var items = [
+      { k: 'listener', ic: 'bell', t: '通知使用权', d: '读取正在播放的歌和导航', ok: s.listener, act: 'openListener' },
+      { k: 'bt', ic: 'bt', t: '蓝牙权限', d: '让副屏能连上来', ok: s.bt, act: 'reqBt' },
+      { k: 'battery', ic: 'bat', t: '忽略电池优化', d: '防止被系统杀掉（本身几乎不耗电）', ok: s.battery, act: 'battery' },
+      { k: 'bg', ic: 'bg', t: '后台与自启动', d: 'vivo：允许后台运行、允许自启动', ok: null, act: 'appDetails' },
+      { k: 'beat', ic: 'wave', t: '律动（可选）', d: '系统要求“麦克风”权限名，实际不录音', ok: s.beat, opt: true, act: 'reqBeat' }
+    ];
+    var box = $('setup'), html = '';
+    items.forEach(function (it) {
+      var badge = it.ok === true ? '<span class="badge ok">已完成</span>'
+        : it.ok === null ? '<span class="badge opt">去设置</span>'
+        : it.opt ? '<span class="badge opt">未开启</span>' : '<span class="badge todo">待开启</span>';
+      html += '<div class="item" data-act="' + it.act + '"><div class="ic"><svg viewBox="0 0 24 24">' + ICON[it.ic] + '</svg></div>' +
+        '<div class="txt"><b>' + it.t + '</b><small>' + it.d + '</small></div>' + badge + '</div>';
+    });
+    box.innerHTML = html;
+
+    // 状态大卡片
+    var c, title, text;
+    if (!s.listener) { c = 'var(--bad)'; title = '还差一步'; text = '请先开启“通知使用权”'; }
+    else if (s.svc.indexOf('已连接') === 0) { c = 'var(--ok)'; title = s.svc; text = '正在把播放信息同步到副屏'; }
+    else if (s.svc.indexOf('待机') === 0) { c = '#7fd8ff'; title = '待机中'; text = '等副屏连过来，平时几乎不耗电、不联网'; }
+    else { c = 'var(--warn)'; title = '需要处理'; text = s.svc; }
+    $('orb').style.setProperty('--c', c);
+    $('st-title').textContent = title; $('st-text').textContent = text;
+    $('hide-sw').classList.toggle('on', s.hide);
+    $('foot').innerHTML = '手机副屏 v' + s.ver + '<br>安卓 ' + s.android + ' · ' + s.model;
+    if (!$('upd-sub').textContent) $('upd-sub').textContent = '当前 v' + s.ver;
+  }
+
+  document.addEventListener('click', function (e) {
+    var it = e.target.closest('[data-act]');
+    if (it && N[it.dataset.act]) N[it.dataset.act]();
+  });
+  $('hide').addEventListener('click', function () { var on = !$('hide-sw').classList.contains('on'); N.setHide(on); $('hide-sw').classList.toggle('on', on); });
+  $('upd').addEventListener('click', function () { N.updateClick(); });
+
+  // 更新状态由原生回调
+  window.PLS.onUpdate = function (title, sub, isNew) {
+    $('upd-title').innerHTML = isNew ? '<span class="new">' + title + '</span>' : title;
+    $('upd-sub').textContent = sub || '';
+  };
+
+  render();
+  setInterval(render, 1500);
+})();
+</script>
+</body>
+</html>
