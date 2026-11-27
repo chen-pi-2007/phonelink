@@ -32,7 +32,6 @@
   PL.on('state', function (s) {
     // 连接标签带上主手机版本（旧版主手机不发 ver，显示“需更新”）
     var c = document.getElementById('conn');
-    document.getElementById('set-hostver').textContent = s.ver ? 'v' + s.ver : '较旧，请在主手机上更新';
     checkHostVersion(s.ver);
     nextAlarm = s.nextAlarm || 0;
     renderAlarm();
@@ -122,26 +121,35 @@
     });
   });
 
-  // 主手机版本比副屏旧：顶部提示，点一下让主手机自动下载安装
+  // 主手机版本比副屏旧：连接标签变黄并带向上小箭头；设置里可让主手机更新
   function verNum(v) { return String(v || '0').split('.').reduce(function (a, x) { return a * 1000 + (parseInt(x, 10) || 0); }, 0); }
   var updAsked = false;
   function checkHostVersion(hostVer) {
-    var N = window.PLNative, mine = N && N.version ? N.version() : null, b = document.getElementById('upd-banner');
-    var older = mine && verNum(hostVer) < verNum(mine);
-    b.classList.toggle('hidden', !older);
-    var canRemote = verNum(hostVer) >= verNum('0.9.3'); // 0.9.3 起主手机才支持被副屏触发自动更新
-    b.dataset.remote = canRemote ? '1' : '';
-    if (older && !updAsked) b.textContent = canRemote
-      ? '主手机需要更新（v' + hostVer + ' → v' + mine + '）· 点这里更新'
-      : '主手机版本较旧（v' + (hostVer || '?') + '），请在主手机上打开“手机副屏”点一次检查更新';
+    var N = window.PLNative, mine = N && N.version ? N.version() : null;
+    var older = !!mine && verNum(hostVer) < verNum(mine);
+    var canRemote = verNum(hostVer) >= verNum('0.9.3'); // 0.9.3 起主手机支持被副屏触发后台更新
+    document.getElementById('conn').classList.toggle('needupd', older);
+    var btn = document.getElementById('set-hostupd');
+    btn.classList.toggle('hidden', !older);
+    btn.disabled = !canRemote;
+    if (!updAsked) btn.textContent = canRemote ? '让主手机更新到 v' + mine : '请在主手机上打开“手机副屏”点检查更新';
+    document.getElementById('set-hostver').textContent = (hostVer ? 'v' + hostVer : '较旧') + (older ? ' · 可更新' : '');
   }
   document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('upd-banner').addEventListener('click', function () {
-      if (!this.dataset.remote) return;
+    document.getElementById('set-hostupd').addEventListener('click', function () {
+      if (this.disabled) return;
       updAsked = true;
       PL.send({ t: 'cmd', c: 'update' });
       this.textContent = '已通知主手机更新，装完会自动重连';
     });
+  });
+
+  // 副屏自己有新版：齿轮小红点，设置里点“检查更新”安装
+  var selfNew = null;
+  PL.on('selfUpdate', function (m) {
+    selfNew = m.ver;
+    document.getElementById('gear').classList.add('dot');
+    document.getElementById('set-update').textContent = '有新版 v' + m.ver + ' · 点击更新';
   });
 
   // 设置面板
@@ -156,8 +164,8 @@
     document.getElementById('set-pick').addEventListener('click', function () { openSettings(false); if (N && N.pickHost) N.pickHost(); });
     document.getElementById('set-update').addEventListener('click', function () {
       var b = this;
-      if (N && N.checkUpdate) { N.checkUpdate(); b.textContent = '正在检查…（有新版会自动安装）'; }
-      setTimeout(function () { b.textContent = '检查更新'; }, 4000);
+      if (N && N.checkUpdate) { N.checkUpdate(); b.textContent = selfNew ? '正在下载安装 v' + selfNew + '…' : '正在检查…'; }
+      setTimeout(function () { b.textContent = selfNew ? '有新版 v' + selfNew + ' · 点击更新' : '已是最新版'; }, 5000);
     });
   });
 

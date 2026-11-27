@@ -664,10 +664,13 @@ public class DisplayActivity extends Activity {
         new Thread(() -> {
             Updater.Info info = Updater.fetchLatest();
             if (info == null || info.versionCode <= Updater.myVersion(this)) return;
+            // 只提示（齿轮小红点），用户在设置里点“检查更新”才安装
             try {
-                java.io.File f = Updater.download(this, info, m -> {});
-                setStatus("已下载新版 v" + info.versionName + "，正在安装，稍后自动重启…");
-                Updater.installRoot(this, f);
+                JSONObject o = new JSONObject();
+                o.put("t", "selfUpdate");
+                o.put("ver", info.versionName);
+                String js = o.toString();
+                ui.post(() -> toWeb(js));
             } catch (Exception ignored) {}
         }, "update-check").start();
         ui.postDelayed(this::onlineUpdateCheck, 6 * 3600_000L);

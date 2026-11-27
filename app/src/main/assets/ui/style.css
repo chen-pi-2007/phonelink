@@ -286,7 +286,13 @@ body.lyric-stage .ly.cur { text-shadow: 0 0 calc(18px + var(--beat, 0) * 26px) r
 .offline.stopped .off-text, .offline.stopped .off-hint { display: none; }
 .offline.stopped .off-title { font-size: 30px; }
 
-/* 主手机需要更新的提示条 */
-.upd-banner { position: fixed; z-index: 6; left: 20px; right: 20px; bottom: calc(26px + 76px + 64px); /* 在进度条上方，不压住进度 */
-  padding: 12px 16px; border-radius: 16px; background: rgba(255,190,70,.95); color: #1a1200; font-size: 16px;
-  font-weight: 700; text-align: center; box-shadow: 0 10px 26px rgba(0,0,0,.4); animation: rise .45s var(--ease-out); }
+/* 主手机需要更新：连接标签变黄，绿点换成向上小箭头 */
+.conn.needupd { background: rgba(255,190,70,.95); color: #1a1200; }
+.conn.needupd::before { width: 0; height: 0; background: none; box-shadow: none; border-radius: 0;
+  border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid #1a1200; vertical-align: 1px; }
+.sheet-btn.amber { background: rgba(255,190,70,.95); color: #1a1200; }
+.sheet-btn:disabled { background: rgba(255,255,255,.08); color: var(--dim); font-size: 15px; }
+/* 副屏有新版：齿轮小红点 */
+.gear { position: relative; }
+.gear.dot::after { content: ''; position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 5px;
+  background: #ff4d4f; box-shadow: 0 0 0 2px rgba(10,12,16,.8); }
