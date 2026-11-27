@@ -26,9 +26,9 @@ button::-moz-focus-inner { border: 0; }
 .clock > * + * { margin-left: 12px; }
 #clock { font-size: 52px; font-weight: 700; letter-spacing: 1px; font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 12px rgba(0,0,0,.55); }
-.alarm { font-size: 20px; color: var(--dim); }
+.alarm { font-size: 18px; color: var(--dim); white-space: nowrap; }
 .conn { font-size: 14px; color: var(--dim); padding: 4px 10px; border-radius: 99px; background: var(--glass);
-  white-space: nowrap; max-width: 56vw; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; max-width: 34vw; overflow: hidden; text-overflow: ellipsis; flex: none;
   transition: color .3s, background .3s; }
 .conn.up { color: #fff; }
 .conn::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 6px;
@@ -77,7 +77,7 @@ button::-moz-focus-inner { border: 0; }
 @keyframes breathe { 50% { transform: scale(1.15); } }
 
 /* ---------- 封面卡片：左右滑跟手 ---------- */
-.cover-wrap { flex: 1 1 auto; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+.cover-wrap { flex: none; padding: 4px 0; display: flex; align-items: center; justify-content: center; }
 .cover { position: relative; width: min(34vh, calc(100vw - 40px)); height: min(34vh, calc(100vw - 40px));
   border-radius: 18px; overflow: hidden; box-shadow: 0 18px 50px rgba(0,0,0,.55);
   will-change: transform; transition: transform .45s var(--spring), opacity .3s; }
@@ -99,8 +99,8 @@ button::-moz-focus-inner { border: 0; }
 .artist { font-size: 18px; color: var(--dim); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---------- 歌词：Apple Music 式 ---------- */
-.lyrics { flex: none; position: relative; height: 128px; overflow: hidden; margin: 6px 0 8px;
-  -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); }
+.lyrics { flex: 1 1 auto; position: relative; min-height: 128px; overflow: hidden; margin: 6px 0 8px;
+  -webkit-mask-image: linear-gradient(transparent, #000 15%, #000 85%, transparent); }
 #lyrics-inner { position: absolute; left: 0; right: 0; top: 0; transition: transform .55s var(--spring); }
 .ly { font-size: 22px; line-height: 1.35; padding: 5px 4px; text-align: center; font-weight: 600;
   color: rgba(255,255,255,.45); transform: scale(.92); filter: blur(.6px);

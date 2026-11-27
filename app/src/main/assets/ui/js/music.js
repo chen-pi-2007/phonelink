@@ -116,9 +116,7 @@
         el.classList.add('cur');
         el.classList.add('karaoke'); // 有逐字时间按字扫亮，没有就按整行时长扫亮
         // 当前行滚到歌词框中间（弹簧缓动由 CSS 负责）
-        var box = $('lyrics');
-        var y = el.offsetTop - (box.clientHeight - el.offsetHeight) / 2;
-        $('lyrics-inner').style.transform = 'translateY(' + (-Math.max(0, y)) + 'px)';
+        if (performance.now() > userScrollUntil) centerLine(i, true);
         if (!window.__hasBeat) PL.bg.pulse(0.45); // 没有真实律动时用换行驱动
       }
     }
@@ -126,6 +124,40 @@
     if (cur) cur.style.setProperty('--p', L.wordProgress(lines[curLine], pos).toFixed(3));
   }
   PL.on('beat', function () { window.__hasBeat = true; });
+
+  // ---------------- 歌词手动滑动（Apple Music 式：拖动翻看，松手 3 秒后回到当前行，点一行跳过去） ----------------
+  var lyricOffset = 0, userScrollUntil = 0, recenterTimer = null;
+  function setLyricOffset(y, animate) {
+    var inner = $('lyrics-inner');
+    inner.style.transition = animate ? '' : 'none';
+    lyricOffset = y;
+    inner.style.transform = 'translateY(' + y + 'px)';
+  }
+  function centerLine(i, animate) {
+    var el = lyricEls[i], box = $('lyrics');
+    if (!el) return;
+    var y = el.offsetTop - (box.clientHeight - el.offsetHeight) / 2;
+    setLyricOffset(-Math.max(0, y), animate);
+  }
+  PL.lyricsDrag = {
+    start: function () { clearTimeout(recenterTimer); userScrollUntil = Infinity; this.base = lyricOffset; },
+    move: function (dy) {
+      var inner = $('lyrics-inner'), box = $('lyrics');
+      var min = -(inner.scrollHeight - box.clientHeight / 2), max = box.clientHeight / 2;
+      setLyricOffset(Math.max(min, Math.min(max, this.base + dy)), false);
+    },
+    end: function () {
+      userScrollUntil = performance.now() + 3000;
+      recenterTimer = setTimeout(function () { centerLine(curLine, true); }, 3000);
+    },
+    tap: function (target) {
+      var i = lyricEls.indexOf(target.closest ? target.closest('.ly') : null);
+      if (i < 0 || !lines[i]) return;
+      basePos = lines[i].t; baseAt = performance.now();
+      PL.send({ t: 'cmd', c: 'seekTo', v: lines[i].t });
+      userScrollUntil = 0; centerLine(i, true);
+    }
+  };
 
   // ---------------- 进度循环 ----------------
   function loop() {
@@ -201,12 +233,13 @@
   PL.getPage = function () { return page; };
 
   function bindGestures() {
-    var sx, sy, st0, axis, lastX, lastY, lastT, vx, vy, active = false, onCover = false;
+    var sx, sy, st0, axis, lastX, lastY, lastT, vx, vy, active = false, onCover = false, onLyrics = false;
     var pages = $('pages'), cover = $('cover');
     document.addEventListener('pointerdown', function (e) {
       if (e.target.closest('button, .chip, .nav-pill, .clock, .progress')) return;
       active = true; axis = null; sx = lastX = e.clientX; sy = lastY = e.clientY; st0 = lastT = performance.now(); vx = vy = 0;
       onCover = page === 0 && !!e.target.closest('.cover-wrap, .meta, .lyrics');
+      onLyrics = page === 0 && !!e.target.closest('.lyrics') && lyricEls.length > 0;
     });
     document.addEventListener('pointermove', function (e) {
       if (!active) return;
@@ -216,6 +249,9 @@
       if (axis === 'x' && onCover) {
         cover.classList.add('dragging');
         cover.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx / innerWidth * 8) + 'deg)';
+      } else if (axis === 'y' && onLyrics) {
+        if (!PL.lyricsDrag.dragging) { PL.lyricsDrag.dragging = true; PL.lyricsDrag.start(); }
+        PL.lyricsDrag.move(dy);
       } else if (axis === 'y') {
         pages.classList.add('dragging');
         // 翻到头时加阻尼
@@ -228,6 +264,8 @@
       if (!active) return; active = false;
       var dx = e.clientX - sx, dy = e.clientY - sy;
       var r = PL.gesture.classify(dx, dy, vx, vy, innerWidth, innerHeight);
+      if (onLyrics && PL.lyricsDrag.dragging) { PL.lyricsDrag.dragging = false; PL.lyricsDrag.end(); return; }
+      if (onLyrics && !axis && Math.abs(dx) < 10 && Math.abs(dy) < 10) { PL.lyricsDrag.tap(e.target); return; }
       if (axis === 'x' && onCover) {
         if (r === 'next' || r === 'prev') swipeTrack(r);
         else { cover.classList.remove('dragging'); cover.style.transform = ''; } // 弹簧回弹

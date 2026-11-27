@@ -133,8 +133,8 @@ public class SourceActivity extends Activity {
         super.onResume();
         refreshDevices();
         // 若服务被系统解绑过，请求重新绑定
-        if (listenerEnabled()) {
-            NotificationListenerService.requestRebind(new ComponentName(this, BridgeListenerService.class));
+        if (listenerEnabled() && "未启动".equals(BridgeListenerService.status)) {
+            UpdatedReceiver.rebindListener(this); // 开关开着但服务没跑：自动“关掉再打开”
         }
         tick.run();
         long lastCheck = Proto.prefs(this).getLong("last_update_check", 0);
