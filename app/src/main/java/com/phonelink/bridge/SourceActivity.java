@@ -79,6 +79,9 @@ public class SourceActivity extends Activity {
             startActivity(i);
         }));
 
+        root.addView(btn("律动测试（看能不能拿到音乐节拍）", () ->
+                startActivity(new Intent(this, BeatTestActivity.class))));
+
         root.addView(btn("复制导航诊断记录（高德/百度/腾讯）", () -> {
             try {
                 java.io.File f = NavBridge.logFile(this);
