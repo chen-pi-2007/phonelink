@@ -36,7 +36,7 @@
         meta.classList.remove('swap');
       }, 180);
       // 没有新歌词前先用标题占位（听书、搜不到歌词时也一直显示这个）
-      if (lyricKey !== s.title) setLines([], s);
+      if (lyricKey !== s.title + '|' + (s.artist || '') && lyricKey !== s.title) setLines([], s);
       // 封面：先显示占位，等新图
       if (!s.art) $('cover').classList.remove('loaded');
       landCover();
@@ -79,7 +79,12 @@
   }
 
   // ---------------- 歌词 ----------------
-  PL.on('lyrics', function (m) { lyricKey = m.key; setLines(m.lines || [], st); });
+  // lines：逐字歌词；lrc：逐行歌词原文（网易云普通接口只给这个）
+  PL.on('lyrics', function (m) {
+    lyricKey = m.key;
+    var ls = (m.lines && m.lines.length) ? m.lines : (m.lrc ? L.parseLrc(m.lrc).filter(function (l) { return l.text; }) : []);
+    setLines(ls, st);
+  });
 
   function setLines(ls, s) {
     lines = ls; curLine = -2;
@@ -105,7 +110,7 @@
       var el = lyricEls[i];
       if (el) {
         el.classList.add('cur');
-        if (lines[i].words) el.classList.add('karaoke');
+        el.classList.add('karaoke'); // 有逐字时间按字扫亮，没有就按整行时长扫亮
         // 当前行滚到歌词框中间（弹簧缓动由 CSS 负责）
         var box = $('lyrics');
         var y = el.offsetTop - (box.clientHeight - el.offsetHeight) / 2;
@@ -114,7 +119,7 @@
       }
     }
     var cur = lyricEls[curLine];
-    if (cur && lines[curLine].words) cur.style.setProperty('--p', L.wordProgress(lines[curLine], pos).toFixed(3));
+    if (cur) cur.style.setProperty('--p', L.wordProgress(lines[curLine], pos).toFixed(3));
   }
   PL.on('beat', function () { window.__hasBeat = true; });
 

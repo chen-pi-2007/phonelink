@@ -146,6 +146,49 @@ public class BridgeListenerService extends NotificationListenerService {
     }
 
     private NavBridge nav;
+    private final LyricsFetcher lyrics = new LyricsFetcher();
+    private String lyricKey;
+    private JSONObject lastLyrics;
+    private final BeatSource beat = new BeatSource(o -> { if (out != null) send(o); });
+
+    /** 听书类 App 不搜歌词 */
+    private static final java.util.Set<String> BOOK_PKGS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "com.dragon.read", "com.xs.fm", "com.phoenix.read", "com.ximalaya.ting.android",
+            "com.ximalaya.ting.lite", "com.lazyaudio.yayagushi", "bubei.tingshu"));
+    /** 律动白名单：音乐 / 听书 App */
+    private static final java.util.Set<String> BEAT_PKGS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "com.netease.cloudmusic", "com.tencent.qqmusic", "com.kugou.android", "cn.kuwo.player",
+            "com.ximalaya.ting.android", "com.dragon.read", "com.xs.fm", "com.phoenix.read",
+            "com.spotify.music", "com.luna.music", "com.apple.android.music"));
+
+    /** 换歌时搜歌词；旧歌的结果晚到时按 key 丢弃 */
+    private void maybeFetchLyrics(String pkg, String title, String artist, long duration) {
+        String key = LyricsFetcher.key(title, artist);
+        if (key.equals(lyricKey)) return;
+        lyricKey = key;
+        lastLyrics = null;
+        if (title == null || title.isEmpty() || BOOK_PKGS.contains(pkg) || duration > 15 * 60_000L) {
+            try {
+                JSONObject empty = new JSONObject().put("t", "lyrics").put("key", key).put("lines", new JSONArray());
+                lastLyrics = empty;
+                send(empty);
+            } catch (Exception ignored) {}
+            return;
+        }
+        lyrics.fetch(title, artist, (k, msg) -> h.post(() -> {
+            if (!k.equals(lyricKey)) return;
+            lastLyrics = msg;
+            send(msg);
+        }));
+    }
+
+    /** 律动只在：已连接 + 正在播放 + 白名单 App + 有麦克风权限 时运行 */
+    private void updateBeat(String pkg, boolean playing) {
+        boolean want = out != null && playing && BEAT_PKGS.contains(pkg)
+                && checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
+                   == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        if (want) beat.start(); else beat.stop();
+    }
 
     @Override
     public void onNotificationPosted(android.service.notification.StatusBarNotification sbn) {
@@ -168,6 +211,7 @@ public class BridgeListenerService extends NotificationListenerService {
     public void onDestroy() {
         running = false;
         if (nav != null) nav.stop();
+        beat.stop();
         closeSocket();
         if (msm != null) msm.removeOnActiveSessionsChangedListener(sessionsListener);
         for (Map.Entry<MediaSession.Token, MediaController> e : watched.entrySet()) {
@@ -333,6 +377,9 @@ public class BridgeListenerService extends NotificationListenerService {
                 o.put("queue", arr);
             }
             send(o);
+            if (m != null) maybeFetchLyrics(pkg, str(m, MediaMetadata.METADATA_KEY_TITLE),
+                    str(m, MediaMetadata.METADATA_KEY_ARTIST), m.getLong(MediaMetadata.METADATA_KEY_DURATION));
+            updateBeat(pkg, s != null && s.getState() == PlaybackState.STATE_PLAYING);
         } catch (Exception e) {
             Log.w(TAG, "pushState", e);
         }
@@ -437,7 +484,7 @@ public class BridgeListenerService extends NotificationListenerService {
                 out = s.getOutputStream();
                 status = "已连接 " + s.getRemoteDevice().getName();
                 artSent = false;
-                h.post(() -> { pickController(); pushState(); if (nav != null) nav.resend(); });
+                h.post(() -> { pickController(); pushState(); if (nav != null) nav.resend(); if (lastLyrics != null) send(lastLyrics); });
                 BufferedReader r = new BufferedReader(new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8));
                 String line;
                 while (running && (line = r.readLine()) != null) {
@@ -531,6 +578,7 @@ public class BridgeListenerService extends NotificationListenerService {
 
     private void closeSocket() {
         out = null;
+        beat.stop(); // 断开即停律动
         BluetoothSocket s = socket;
         socket = null;
         if (s != null) try { s.close(); } catch (Exception ignored) {}

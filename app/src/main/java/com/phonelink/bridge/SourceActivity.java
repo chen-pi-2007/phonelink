@@ -79,6 +79,9 @@ public class SourceActivity extends Activity {
             startActivity(i);
         }));
 
+        root.addView(btn("⑥ 开启律动（系统要求麦克风权限名义，不会录音）", () ->
+                requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 6)));
+
         root.addView(btn("律动测试（看能不能拿到音乐节拍）", () ->
                 startActivity(new Intent(this, BeatTestActivity.class))));
 
