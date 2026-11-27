@@ -82,6 +82,25 @@
     c.classList.toggle('up', !!m.up);
   });
 
+  // 主题：flow 流光 / galaxy 星河 / vinyl 黑胶 / mono 日光（记在本机，下次打开沿用）
+  var THEMES = ['flow', 'galaxy', 'vinyl', 'mono'];
+  PL.setTheme = function (t) {
+    if (THEMES.indexOf(t) < 0) t = 'flow';
+    THEMES.forEach(function (x) { document.body.classList.toggle('theme-' + x, x === t); });
+    document.querySelectorAll('.theme').forEach(function (el) { el.classList.toggle('on', el.dataset.t === t); });
+    try { localStorage.setItem('pl-theme', t); } catch (e) {}
+    PL.theme = t;
+    PL.emit('_theme', t);
+  };
+  document.addEventListener('DOMContentLoaded', function () {
+    var t = 'flow';
+    try { t = localStorage.getItem('pl-theme') || 'flow'; } catch (e) {}
+    PL.setTheme(t);
+    document.querySelectorAll('.theme').forEach(function (el) {
+      el.addEventListener('click', function () { PL.setTheme(el.dataset.t); });
+    });
+  });
+
   // 设置面板
   function openSettings(on) { document.getElementById('settings').classList.toggle('show', on); }
   document.addEventListener('DOMContentLoaded', function () {

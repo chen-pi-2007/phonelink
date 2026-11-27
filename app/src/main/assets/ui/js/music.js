@@ -47,6 +47,7 @@
     dur = s.duration || 0; speed = s.speed || 1; playing = !!s.playing;
     basePos = s.pos || 0; baseAt = performance.now();
     $('pp').setAttribute('d', playing ? PAUSE : PLAY);
+    document.body.classList.toggle('playing', playing);
     renderSources(s);
   }
 

@@ -55,6 +55,37 @@
 
   function lerp(a, b, t) { return a + (b - a) * t; }
 
+  // ---------- 星河：星星迎面飞来，律动时闪烁加速 ----------
+  var monoCleared = false, stars = null;
+  function drawGalaxy(t) {
+    if (!stars) {
+      stars = [];
+      for (var i = 0; i < 220; i++) stars.push({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1, z: Math.random() });
+    }
+    var bgG = g.createRadialGradient(W * 0.5, H * 0.38, 0, W * 0.5, H * 0.38, Math.max(W, H) * 0.8);
+    var c = cur[0];
+    bgG.addColorStop(0, 'rgb(' + Math.round(10 + c[0] * 0.25) + ',' + Math.round(16 + c[1] * 0.25) + ',' + Math.round(40 + c[2] * 0.3) + ')');
+    bgG.addColorStop(1, '#02030a');
+    g.fillStyle = bgG; g.fillRect(0, 0, W, H);
+    var cx = W / 2, cy = H * 0.4, speed = 0.0016 * (1 + glow * 5);
+    g.globalCompositeOperation = 'lighter';
+    for (var j = 0; j < stars.length; j++) {
+      var st = stars[j];
+      st.z -= speed;
+      if (st.z <= 0.02) { st.x = Math.random() * 2 - 1; st.y = Math.random() * 2 - 1; st.z = 1; }
+      var px = cx + st.x / st.z * W * 0.5, py = cy + st.y / st.z * H * 0.5;
+      if (px < 0 || px > W || py < 0 || py > H) continue;
+      var size = (1 - st.z) * 2.6 * dpr * (1 + glow * 0.8);
+      var tw = 0.55 + 0.45 * Math.sin(t * 3 + j);
+      g.fillStyle = 'rgba(210,225,255,' + Math.min(1, (1 - st.z) * tw * (0.8 + glow)).toFixed(3) + ')';
+      g.fillRect(px, py, size, size);
+    }
+    g.globalCompositeOperation = 'source-over';
+    var sh = g.createLinearGradient(0, H * 0.5, 0, H);
+    sh.addColorStop(0, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,0,0.5)');
+    g.fillStyle = sh; g.fillRect(0, 0, W, H);
+  }
+
   function frame(now) {
     requestAnimationFrame(frame);
     if (document.hidden || now - last < 33) return;   // 30 帧上限，后台不画
@@ -67,6 +98,15 @@
     }
     energy *= 0.86; glow = lerp(glow, energy, 0.5);
     var t = now / 1000;
+    var theme = PL.theme || 'flow';
+    var wrap0 = document.getElementById('cover-wrap');
+    if (theme === 'mono') {           // 日光：不渲染任何特效，最省电
+      if (!monoCleared) { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); monoCleared = true; }
+      if (wrap0) wrap0.style.transform = '';
+      return;
+    }
+    monoCleared = false;
+    if (theme === 'galaxy') { drawGalaxy(t); if (wrap0) wrap0.style.transform = 'scale(' + (1 + glow * 0.06).toFixed(4) + ')'; return; }
 
     // 1) 流动渐变（小画布）
     sg.fillStyle = 'rgb(' + cur[1].join(',') + ')'; sg.fillRect(0, 0, 48, 80);
@@ -82,6 +122,8 @@
     }
     g.imageSmoothingEnabled = true;
     g.drawImage(small, 0, 0, W, H);
+    // 黑胶：整体再压暗，突出唱片
+    if (theme === 'vinyl') { g.fillStyle = 'rgba(0,0,0,0.38)'; g.fillRect(0, 0, W, H); }
     // 底部压暗，保证控制区和歌词可读
     var sh = g.createLinearGradient(0, H * 0.45, 0, H);
     sh.addColorStop(0, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,0,0.55)');

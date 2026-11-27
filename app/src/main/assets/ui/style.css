@@ -198,3 +198,48 @@ button::-moz-focus-inner { border: 0; }
 /* 开场期间主界面稍微缩小，开场结束时随冲击波放大浮现 */
 body.intro-on #pages, body.intro-on #topbar { transform: scale(.94); opacity: 0; transition: none; }
 body.intro-reveal #pages, body.intro-reveal #topbar { transition: transform .9s var(--ease-out), opacity .9s; }
+
+
+/* ================= 主题 ================= */
+/* 设置面板里的主题选择 */
+.theme-label { font-size: 15px; color: var(--dim); margin: 4px 0 8px; }
+.themes { display: flex; margin-bottom: 8px; }
+.theme { flex: 1; text-align: center; font-size: 15px; color: var(--dim); padding: 8px 0; border-radius: 14px;
+  transition: background .25s, color .25s; }
+.theme + .theme { margin-left: 8px; }
+.theme.on { background: rgba(255,255,255,.12); color: #fff; }
+.sw { display: block; width: 52px; height: 52px; margin: 0 auto 6px; border-radius: 14px; border: 2px solid transparent; }
+.theme.on .sw { border-color: #fff; }
+.sw-flow { background: linear-gradient(135deg, #6a3093, #1d2b64 60%, #f8cdda); }
+.sw-galaxy { background: radial-gradient(circle at 30% 30%, #fff 0 1px, transparent 2px), radial-gradient(circle at 70% 60%, #fff 0 1px, transparent 2px),
+  radial-gradient(circle at 50% 80%, #cde 0 1px, transparent 2px), radial-gradient(circle at 50% 40%, #1b2a55, #02030a); }
+.sw-vinyl { border-radius: 50%; background: radial-gradient(circle, #c33 0 20%, #111 21% 23%, #222 24%, #111 30%, #222 36%, #111 42%, #222 48%, #0a0a0a 100%); }
+.sw-mono { background: #000; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+
+/* 黑胶：封面变成旋转的圆形唱片，播放时转、暂停时停 */
+body.theme-vinyl .cover { width: min(34vw, 17vh); height: min(34vw, 17vh); border-radius: 50% !important;
+  box-shadow: 0 0 0 6px #0b0b0b, 0 0 0 8px #262626, 0 14px 40px rgba(0,0,0,.6); }
+body.theme-vinyl .cover::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%;
+  background: repeating-radial-gradient(circle, rgba(0,0,0,0) 0 3px, rgba(0,0,0,.18) 4px 5px),
+              radial-gradient(circle, #0b0b0b 0 9%, rgba(0,0,0,0) 10%);
+  pointer-events: none; }
+body.theme-vinyl .cover img { animation: vinylSpin 14s linear infinite; animation-play-state: paused; }
+body.theme-vinyl.playing .cover img { animation-play-state: running; }
+@keyframes vinylSpin { to { transform: rotate(360deg); } }
+
+/* 星河：歌词带一点冷色光晕 */
+body.theme-galaxy .ly.cur { text-shadow: 0 0 20px rgba(150,190,255,.6); }
+body.theme-galaxy .controls .play { background: rgba(200,220,255,.92); }
+
+/* 日光：纯黑底超大白字，没有特效，户外最清楚也最省电 */
+body.theme-mono #bg { display: none; }
+body.theme-mono { background: #000; }
+body.theme-mono .ly { font-size: 30px; color: #6b6b6b; filter: none; transform: none; text-shadow: none; }
+body.theme-mono .ly.cur { color: #fff; font-weight: 800; }
+body.theme-mono .ly.cur.karaoke { background-image: linear-gradient(90deg, #fff calc(var(--p, 0) * 100%), #8a8a8a calc(var(--p, 0) * 100% + 4%)); }
+body.theme-mono .title { font-size: 28px; }
+body.theme-mono .controls button { background: #1c1c1c; }
+body.theme-mono .controls .play { background: #fff; }
+body.theme-mono .chip, body.theme-mono .conn, body.theme-mono .gear { background: #1c1c1c; }
+body.theme-mono .chip.on { background: #fff; color: #000; }
+body.theme-mono .cover { box-shadow: none; }
