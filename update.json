@@ -1,13 +1,13 @@
 {
-  "versionCode": 15,
-  "versionName": "0.8.1",
-  "notes": "新增主题切换：流光、星河、黑胶、日光（右上角齿轮里选）",
-  "sha256": "3382c2d37fea76d451195e09072c0abc3223b9a8ef4edfd699fef69acea4eb56",
-  "size": 85077,
+  "versionCode": 16,
+  "versionName": "0.9.0",
+  "notes": "新增光晕/行星/隧道主题、舞台歌词样式、跟随节拍的电影镜头效果",
+  "sha256": "2ff6d4933668fbec00a2f939f606ba0370d0e4130c0a374330a6c1cf7bad2c8f",
+  "size": 87361,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/8506ac40adcaaecc1440fa81324a9e64c00d6519/dist/PhoneLink-v0.8.1.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/8506ac40adcaaecc1440fa81324a9e64c00d6519/dist/PhoneLink-v0.8.1.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.8.1/PhoneLink-v0.8.1.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.8.1/PhoneLink-v0.8.1.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/4d401cc38939d60183b99679c0b696824875c2ef/dist/PhoneLink-v0.9.0.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/4d401cc38939d60183b99679c0b696824875c2ef/dist/PhoneLink-v0.9.0.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.0/PhoneLink-v0.9.0.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.0/PhoneLink-v0.9.0.apk"
   ]
 }
