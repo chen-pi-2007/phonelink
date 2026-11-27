@@ -1,13 +1,13 @@
 {
-  "versionCode": 21,
-  "versionName": "0.10.0",
-  "notes": "新增3D主题：封面星尘、星云隧道、雨夜霓虹；副屏耗电大幅降低（零渲染时CPU从62%降到3%）",
-  "sha256": "ab87f62a966bc3006f3e5701d72413ed714b3c632156a6c00ffd323dadb35945",
-  "size": 251348,
+  "versionCode": 22,
+  "versionName": "0.10.1",
+  "notes": "主手机界面重做：首页简洁只看状态和正在同步的歌，其余功能收进右上角设置",
+  "sha256": "2b9f79d247ed7ad70095e6520163aa2de5557bbf328d353fdfa3ecd685cb4132",
+  "size": 251456,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/4bf43b256337907bda3fcc12453c5eef60dd11e3/dist/PhoneLink-v0.10.0.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/4bf43b256337907bda3fcc12453c5eef60dd11e3/dist/PhoneLink-v0.10.0.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.0/PhoneLink-v0.10.0.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.0/PhoneLink-v0.10.0.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/fdb50bcce87b22f8e520797a0c216fcfbc28aa8d/dist/PhoneLink-v0.10.1.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/fdb50bcce87b22f8e520797a0c216fcfbc28aa8d/dist/PhoneLink-v0.10.1.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.1/PhoneLink-v0.10.1.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.1/PhoneLink-v0.10.1.apk"
   ]
 }
