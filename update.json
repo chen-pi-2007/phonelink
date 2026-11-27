@@ -1,13 +1,13 @@
 {
-  "versionCode": 14,
-  "versionName": "0.8.0",
-  "notes": "开场动画、全新连接界面、闹钟倒计时、歌词区加大重新排版、右上角设置按钮、修复番茄出现两次",
-  "sha256": "defce99afaf4e37c7f9acfb38b61c17ce702838d94f31ed8583d2b292508337d",
-  "size": 83201,
+  "versionCode": 15,
+  "versionName": "0.8.1",
+  "notes": "新增主题切换：流光、星河、黑胶、日光（右上角齿轮里选）",
+  "sha256": "3382c2d37fea76d451195e09072c0abc3223b9a8ef4edfd699fef69acea4eb56",
+  "size": 85077,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/316686cb1320edbd1107f4310e7be4f3f300b293/dist/PhoneLink-v0.8.0.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/316686cb1320edbd1107f4310e7be4f3f300b293/dist/PhoneLink-v0.8.0.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.8.0/PhoneLink-v0.8.0.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.8.0/PhoneLink-v0.8.0.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/8506ac40adcaaecc1440fa81324a9e64c00d6519/dist/PhoneLink-v0.8.1.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/8506ac40adcaaecc1440fa81324a9e64c00d6519/dist/PhoneLink-v0.8.1.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.8.1/PhoneLink-v0.8.1.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.8.1/PhoneLink-v0.8.1.apk"
   ]
 }
