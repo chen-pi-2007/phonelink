@@ -1,13 +1,13 @@
 {
-  "versionCode": 10,
-  "versionName": "0.7.1",
-  "notes": "去掉点击按钮后出现的黄色框",
-  "sha256": "3de9ec26380cfc3ea0be3a8ee9bd5716a233b69ede674bd7a89edb191ca74580",
-  "size": 76234,
+  "versionCode": 11,
+  "versionName": "0.7.2",
+  "notes": "律动效果更明显；副屏顶部显示主手机版本号",
+  "sha256": "7c1db3fbf38ad904996ba9fa5e1f77eb44063d7b3f1a4d77f1dc8b42235d6fa3",
+  "size": 76410,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/ff2d775a8eb46c04d1eaeeb96c27e3c311bd6a70/dist/PhoneLink-v0.7.1.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/ff2d775a8eb46c04d1eaeeb96c27e3c311bd6a70/dist/PhoneLink-v0.7.1.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.1/PhoneLink-v0.7.1.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.1/PhoneLink-v0.7.1.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/37c753af70056dece80d9ee55c6424f8f9ecbe7d/dist/PhoneLink-v0.7.2.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/37c753af70056dece80d9ee55c6424f8f9ecbe7d/dist/PhoneLink-v0.7.2.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.2/PhoneLink-v0.7.2.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.2/PhoneLink-v0.7.2.apk"
   ]
 }
