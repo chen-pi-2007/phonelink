@@ -28,7 +28,11 @@
     document.getElementById('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
     setTimeout(tickClock, 1000 - d.getMilliseconds() + 5);
   }
+  var connName = '';
   PL.on('state', function (s) {
+    // 连接标签带上主手机版本（旧版主手机不发 ver，显示“需更新”）
+    var c = document.getElementById('conn');
+    if (c.classList.contains('up')) c.textContent = '已连接 · ' + (connName || '主手机') + ' · ' + (s.ver ? 'v' + s.ver : '主手机需更新');
     var el = document.getElementById('alarm');
     if (s.nextAlarm && s.nextAlarm > Date.now()) {
       var a = new Date(s.nextAlarm);
@@ -43,6 +47,7 @@
     document.getElementById('offline').classList.toggle('show', !m.up);
     if (m.text) document.getElementById('offline-text').textContent = m.text;
     var c = document.getElementById('conn');
+    connName = m.name || '';
     c.textContent = m.up ? (m.name ? '已连接 · ' + m.name : '已连接') : '未连接';
     c.classList.toggle('up', !!m.up);
   });

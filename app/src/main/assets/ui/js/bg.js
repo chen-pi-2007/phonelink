@@ -65,7 +65,7 @@
       var e = 1 - Math.pow(1 - mixT, 3);
       cur = from.map(function (c, i) { return c.map(function (v, k) { return Math.round(lerp(v, to[i][k], e)); }); });
     }
-    energy *= 0.9; glow = lerp(glow, energy, 0.35);
+    energy *= 0.86; glow = lerp(glow, energy, 0.5);
     var t = now / 1000;
 
     // 1) 流动渐变（小画布）
@@ -73,7 +73,7 @@
     for (var i = 0; i < 3; i++) {
       var cx = 24 + Math.sin(t * (0.13 + i * 0.05) + i * 2) * 18;
       var cy = 40 + Math.cos(t * (0.11 + i * 0.04) + i) * 30;
-      var rad = 34 + i * 6 + glow * 8;
+      var rad = 34 + i * 6 + glow * 14;
       var gr = sg.createRadialGradient(cx, cy, 0, cx, cy, rad);
       var c = cur[i];
       gr.addColorStop(0, 'rgba(' + c.join(',') + ',0.95)');
@@ -91,19 +91,20 @@
     g.globalCompositeOperation = 'lighter';
     for (var j = 0; j < parts.length; j++) {
       var p = parts[j];
-      p.y -= p.v * (1 + glow * 2.5);
+      p.y -= p.v * (1 + glow * 4);
       p.x += Math.sin(t * 0.6 + p.ph) * 0.0004;
       if (p.y < -0.05) parts[j] = p = newPart(false);
-      var r = p.r * dpr * (1 + glow * 1.6);
-      g.fillStyle = 'rgba(255,255,255,' + Math.min(0.9, p.a * (0.55 + glow)) + ')';
+      var r = p.r * dpr * (1 + glow * 2.6);
+      g.fillStyle = 'rgba(255,255,255,' + Math.min(0.95, p.a * (0.5 + glow * 1.6)) + ')';
       g.beginPath(); g.arc(p.x * W, p.y * H, r, 0, 6.283); g.fill();
     }
     g.globalCompositeOperation = 'source-over';
+    if (glow > 0.05) { g.fillStyle = 'rgba(255,255,255,' + (glow * 0.07).toFixed(3) + ')'; g.fillRect(0, 0, W, H); }
 
     // 封面随律动轻微呼吸（最大 3%）
     // 缩放加在外层容器上，不和封面拖动的位移冲突
     var wrap = document.getElementById('cover-wrap');
-    if (wrap) wrap.style.transform = 'scale(' + (1 + glow * 0.03).toFixed(4) + ')';
+    if (wrap) wrap.style.transform = 'scale(' + (1 + glow * 0.06).toFixed(4) + ')';
   }
 
   document.addEventListener('DOMContentLoaded', init);

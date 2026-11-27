@@ -28,6 +28,7 @@ button::-moz-focus-inner { border: 0; }
   text-shadow: 0 2px 12px rgba(0,0,0,.55); }
 .alarm { font-size: 20px; color: var(--dim); }
 .conn { font-size: 14px; color: var(--dim); padding: 4px 10px; border-radius: 99px; background: var(--glass);
+  white-space: nowrap; max-width: 56vw; overflow: hidden; text-overflow: ellipsis;
   transition: color .3s, background .3s; }
 .conn.up { color: #9ff0b4; }
 
