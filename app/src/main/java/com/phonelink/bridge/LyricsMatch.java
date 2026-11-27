@@ -20,12 +20,12 @@ final class LyricsMatch {
         return m.find() ? m.group(1).trim() : title.trim();
     }
 
-    /** 时长比对：相差 2.5 秒内多半是同一版本 +30；相差 8 秒以上多半是别的版本（Live/剪辑）-60；任一未知不影响 */
+    /** 时长比对：相差 2.5 秒内多半是同一版本 +30；相差 8 秒以上是别的版本（Live/清唱/剪辑），直接淘汰；任一未知不影响 */
     static int durationBonus(long myDurMs, long candDurMs) {
         if (myDurMs <= 0 || candDurMs <= 0) return 0;
         long diff = Math.abs(myDurMs - candDurMs);
         if (diff <= 2500) return 30;
-        if (diff >= 8000) return -60;
+        if (diff >= 8000) return -1000; // 时间轴必然对不上，宁可不显示
         return 0;
     }
 

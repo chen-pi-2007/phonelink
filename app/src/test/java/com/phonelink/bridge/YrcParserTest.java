@@ -37,7 +37,7 @@ public class YrcParserTest {
         // 时长比对：同版本加分，明显不同版本扣分，未知时长不影响
         assertEquals(30, LyricsMatch.durationBonus(240_000, 241_500));
         assertEquals(0, LyricsMatch.durationBonus(240_000, 245_000));
-        assertEquals(-60, LyricsMatch.durationBonus(240_000, 300_000));
+        assertTrue("时长差太多应直接淘汰", LyricsMatch.durationBonus(240_000, 300_000) <= -200);
         assertEquals(0, LyricsMatch.durationBonus(0, 241_000));
     }
 }

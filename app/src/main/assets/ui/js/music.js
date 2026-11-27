@@ -67,7 +67,8 @@
     $('pp').setAttribute('d', playing ? PAUSE : PLAY);
     document.body.classList.toggle('playing', playing);
     renderSources(s);
-    if (changed) showOffset();
+    if (changed) { showOffset(); autoOffset = 0; lastLive = ''; }
+    if (s.line) autoSync(s.line);
     if (!lines.length && s.line) {
       var inner = $('lyrics-inner'), d = inner.firstChild;
       if (d && d.textContent !== s.line) {
@@ -141,7 +142,27 @@
   var offsets = {};
   try { offsets = JSON.parse(localStorage.getItem('pl-lyoff') || '{}'); } catch (e) {}
   function songKey() { return st ? (st.title || '') + '|' + (st.artist || '') : ''; }
-  function curOffset() { return offsets[songKey()] || 0; }
+  var autoOffset = 0; // 由播放器实时歌词自动校准出的偏差（本首有效）
+  function curOffset() { return (offsets[songKey()] || 0) + autoOffset; }
+
+  /** 自动校准：播放器（车载蓝牙歌词）刚发来新的一句时，这一句就是“现在”开始唱的；
+   *  在整首歌词里找到同一句，算出偏差对齐。之后整首都跟着播放器的节奏走。 */
+  var lastLive = '';
+  function norm(t) { return String(t || '').replace(/[\s，。,.!?！？、'"“”‘’()（）-]/g, '').toLowerCase(); }
+  function autoSync(line) {
+    if (!line || line === lastLive || !lines.length) return;
+    lastLive = line;
+    var target = norm(line); if (!target) return;
+    var pos = nowPos() - (offsets[songKey()] || 0), best = -1, bestDist = Infinity;
+    for (var i = 0; i < lines.length; i++) {
+      if (norm(lines[i].text) !== target) continue;
+      var d = Math.abs(lines[i].t - (pos - autoOffset));
+      if (d < bestDist) { bestDist = d; best = i; } // 同一句歌词出现多次时取最接近的
+    }
+    if (best < 0) return;
+    var off = pos - lines[best].t;
+    if (Math.abs(off) < 60000) { autoOffset = off; curLine = -2; }
+  }
   function showOffset() {
     var o = curOffset() / 1000, el = document.getElementById('off-val');
     if (el) el.textContent = (o > 0 ? '+' : '') + o.toFixed(1) + 's';
