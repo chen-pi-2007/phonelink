@@ -65,8 +65,13 @@
 
   var srcSig = '', icons = {}; // 包名 -> 图标（base64），主手机每个只发一次
   function renderSources(s) {
-    var ss = s.sessions || [];
-    ss.forEach(function (x) { if (x.icon) icons[x.pkg] = x.icon; });
+    // 同一个 App 可能开了多个播放会话（如番茄），按包名合并，有一个在播就算在播
+    var byPkg = {}, ss = [];
+    (s.sessions || []).forEach(function (x) {
+      if (x.icon) icons[x.pkg] = x.icon;
+      if (!byPkg[x.pkg]) { byPkg[x.pkg] = { pkg: x.pkg, app: x.app, state: x.state }; ss.push(byPkg[x.pkg]); }
+      else if (x.state === 3) byPkg[x.pkg].state = 3;
+    });
     var sig = ss.map(function (x) { return x.pkg + x.state; }).join() + s.pinned + s.pkg;
     if (sig === srcSig) return; srcSig = sig;
     var box = $('sources'); box.innerHTML = '';
@@ -238,7 +243,7 @@
     document.addEventListener('pointerdown', function (e) {
       if (e.target.closest('button, .chip, .nav-pill, .clock, .progress')) return;
       active = true; axis = null; sx = lastX = e.clientX; sy = lastY = e.clientY; st0 = lastT = performance.now(); vx = vy = 0;
-      onCover = page === 0 && !!e.target.closest('.cover-wrap, .meta, .lyrics');
+      onCover = page === 0 && !!e.target.closest('.now, .lyrics');
       onLyrics = page === 0 && !!e.target.closest('.lyrics') && lyricEls.length > 0;
     });
     document.addEventListener('pointermove', function (e) {

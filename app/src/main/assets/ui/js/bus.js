@@ -33,19 +33,48 @@
     // 连接标签带上主手机版本（旧版主手机不发 ver，显示“需更新”）
     var c = document.getElementById('conn');
     document.getElementById('set-hostver').textContent = s.ver ? 'v' + s.ver : '较旧，请在主手机上更新';
-    var el = document.getElementById('alarm');
-    if (s.nextAlarm && s.nextAlarm > Date.now()) {
-      var a = new Date(s.nextAlarm);
-      var tomorrow = a.toDateString() !== new Date().toDateString();
-      el.textContent = '⏰ ' + (tomorrow ? '明 ' : '') + pad(a.getHours()) + ':' + pad(a.getMinutes());
-      el.classList.remove('hidden');
-    } else el.classList.add('hidden');
+    nextAlarm = s.nextAlarm || 0;
+    renderAlarm();
   });
 
+  /** 闹钟：1 小时以外显示时间；1 小时以内显示倒计时并高亮；最后 5 分钟闪动 */
+  var nextAlarm = 0;
+  // 线条闹钟图标（不用 emoji），颜色跟随文字
+  var BELL = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
+    '<circle cx="12" cy="13" r="7"/><path d="M12 9.5V13l2.5 1.5M5 4 2.5 6.5M19 4l2.5 2.5"/></svg>';
+  function renderAlarm() {
+    var el = document.getElementById('alarm'), now = Date.now();
+    if (!nextAlarm || nextAlarm <= now) { el.classList.add('hidden'); return; }
+    var left = nextAlarm - now, mins = Math.ceil(left / 60000), a = new Date(nextAlarm);
+    if (left <= 60 * 60000) {
+      el.innerHTML = BELL + (mins <= 1 ? '马上响铃' : '还有 ' + mins + ' 分钟');
+      el.classList.add('soon');
+      el.classList.toggle('urgent', left <= 5 * 60000);
+    } else {
+      var tomorrow = a.toDateString() !== new Date().toDateString();
+      el.innerHTML = BELL + (tomorrow ? '明 ' : '') + pad(a.getHours()) + ':' + pad(a.getMinutes());
+      el.classList.remove('soon', 'urgent');
+    }
+    el.classList.remove('hidden');
+  }
+  setInterval(renderAlarm, 15000);
+
   /** 连接状态：遮罩淡入淡出 */
+  var wasUp = false;
   PL.on('conn', function (m) {
-    document.getElementById('offline').classList.toggle('show', !m.up);
-    if (m.text) document.getElementById('offline-text').textContent = m.text;
+    var off = document.getElementById('offline');
+    if (m.up && !wasUp) {
+      // 连上：波纹变绿闪一下，再淡出
+      off.classList.add('linked');
+      document.getElementById('offline-title').textContent = '已连接 ' + (m.name || '主手机');
+      setTimeout(function () { off.classList.remove('show'); }, 650);
+      setTimeout(function () { off.classList.remove('linked'); }, 1200);
+    } else if (!m.up) {
+      off.classList.add('show');
+      document.getElementById('offline-title').textContent = m.name ? '正在寻找 ' + m.name : '正在寻找主手机';
+    }
+    wasUp = !!m.up;
+    if (m.text && !m.up) document.getElementById('offline-text').textContent = m.text;
     var c = document.getElementById('conn');
     connName = m.name || '';
     c.textContent = m.up ? (m.name || '已连接') : '未连接';
@@ -59,6 +88,7 @@
     var N = window.PLNative;
     document.getElementById('set-myver').textContent = N && N.version ? 'v' + N.version() : '演示模式';
     document.getElementById('conn').addEventListener('click', function () { openSettings(true); });
+    document.getElementById('gear').addEventListener('click', function () { openSettings(true); });
     document.getElementById('set-close').addEventListener('click', function () { openSettings(false); });
     document.getElementById('settings').addEventListener('click', function (e) { if (e.target.id === 'settings') openSettings(false); });
     document.getElementById('set-pick').addEventListener('click', function () { openSettings(false); if (N && N.pickHost) N.pickHost(); });

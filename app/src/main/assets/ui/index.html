@@ -12,7 +12,10 @@
   <!-- 顶部常驻：时钟 + 闹钟 + 连接状态 -->
   <header id="topbar">
     <div class="clock"><span id="clock">--:--</span><span id="alarm" class="alarm hidden"></span></div>
-    <div id="conn" class="conn">未连接</div>
+    <div class="top-right">
+      <div id="conn" class="conn">未连接</div>
+      <button id="gear" class="gear" aria-label="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
   </header>
 
   <!-- 导航插播提示条（停在音乐页时从顶部滑下） -->
@@ -24,12 +27,15 @@
     <!-- 第 1 页：音乐 -->
     <section class="page page-music">
       <div id="sources" class="sources"></div>
-      <div id="cover-wrap" class="cover-wrap">
-        <div id="cover" class="cover"><img id="cover-img" alt=""><div class="cover-ph shimmer"></div></div>
-      </div>
-      <div class="meta">
-        <div id="title" class="title">未连接</div>
-        <div id="artist" class="artist"></div>
+      <!-- 正在播放：小封面 + 歌名（Apple Music 歌词页式布局，把空间留给歌词） -->
+      <div class="now">
+        <div id="cover-wrap" class="cover-wrap">
+          <div id="cover" class="cover"><img id="cover-img" alt=""><div class="cover-ph shimmer"></div></div>
+        </div>
+        <div class="meta">
+          <div id="title" class="title">未连接</div>
+          <div id="artist" class="artist"></div>
+        </div>
       </div>
       <div id="lyrics" class="lyrics"><div id="lyrics-inner"></div></div>
       <div class="progress"><div id="bar"><i id="bar-fill"></i></div>
@@ -69,7 +75,18 @@
     </div>
   </div>
 
-  <div id="offline" class="offline show"><div class="spinner"></div><div id="offline-text">正在连接主手机…</div></div>
+  <!-- 连接界面：雷达波纹 + 手机图标 -->
+  <div id="offline" class="offline show">
+    <div class="radar">
+      <i></i><i></i><i></i>
+      <svg class="radar-phone" viewBox="0 0 24 24"><path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 3v13h10V5H7zm4 14.5a1 1 0 1 0 2 0 1 1 0 0 0-2 0z"/></svg>
+    </div>
+    <div id="offline-title" class="off-title">正在寻找主手机</div>
+    <div id="offline-text" class="off-text">蓝牙连接中…</div>
+    <div class="off-hint">请确认：主手机蓝牙已开启 · “手机副屏”在后台运行</div>
+  </div>
+
+  <canvas id="intro"></canvas>
 
   <script src="js/lyrics.js"></script>
   <script src="js/gesture.js"></script>
@@ -77,6 +94,7 @@
   <script src="js/bg.js"></script>
   <script src="js/music.js"></script>
   <script src="js/nav.js"></script>
+  <script src="js/intro.js"></script>
   <script src="js/demo.js"></script>
 </body>
 </html>
