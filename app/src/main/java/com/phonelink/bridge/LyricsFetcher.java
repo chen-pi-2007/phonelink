@@ -31,24 +31,26 @@ final class LyricsFetcher {
 
     static String key(String title, String artist) { return (title == null ? "" : title) + "|" + (artist == null ? "" : artist); }
 
-    void fetch(String title, String artist, Callback cb) {
+    void fetch(String title, String artist, Callback cb) { fetch(title, artist, 0, cb); }
+
+    void fetch(String title, String artist, long durationMs, Callback cb) {
         String key = key(title, artist);
         JSONObject hit = cache.get(key);
         if (hit != null) { cb.onLyrics(key, hit); return; }
         pool.execute(() -> {
-            JSONObject msg = load(key, title, artist);
+            JSONObject msg = load(key, title, artist, durationMs);
             cache.put(key, msg);
             cb.onLyrics(key, msg);
         });
     }
 
-    private JSONObject load(String key, String title, String artist) {
+    private JSONObject load(String key, String title, String artist, long durationMs) {
         JSONObject msg = new JSONObject();
         try {
             msg.put("t", "lyrics");
             msg.put("key", key);
             msg.put("lines", new JSONArray());
-            long id = search(LyricsMatch.searchTitle(title), artist);
+            long id = search(LyricsMatch.searchTitle(title), artist, durationMs);
             if (id <= 0) return msg;
             JSONObject l = new JSONObject(get("https://music.163.com/api/song/lyric?id=" + id + "&lv=1&tv=-1&yv=1"));
             String yrc = l.optJSONObject("yrc") != null ? l.optJSONObject("yrc").optString("lyric") : "";
@@ -65,7 +67,7 @@ final class LyricsFetcher {
         return msg;
     }
 
-    private long search(String title, String artist) throws Exception {
+    private long search(String title, String artist, long durationMs) throws Exception {
         String q = URLEncoder.encode(title + " " + (artist == null ? "" : artist), "UTF-8");
         JSONObject r = new JSONObject(get("https://music.163.com/api/search/get/web?type=1&limit=6&s=" + q));
         JSONArray songs = r.optJSONObject("result") == null ? null : r.optJSONObject("result").optJSONArray("songs");
@@ -78,6 +80,7 @@ final class LyricsFetcher {
             JSONArray ar = s.optJSONArray("artists");
             if (ar != null) for (int k = 0; k < ar.length(); k++) artists.add(ar.getJSONObject(k).optString("name"));
             int sc = LyricsMatch.score(title, artist, s.optString("name"), artists);
+            if (sc > 0) sc += LyricsMatch.durationBonus(durationMs, s.optLong("duration")); // 优先时长一致的版本
             if (sc > bestScore) { bestScore = sc; best = s.optLong("id"); }
         }
         return best;

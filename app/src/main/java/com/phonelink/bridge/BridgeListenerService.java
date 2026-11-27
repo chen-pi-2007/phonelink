@@ -179,7 +179,7 @@ public class BridgeListenerService extends NotificationListenerService {
             } catch (Exception ignored) {}
             return;
         }
-        lyrics.fetch(title, artist, (k, msg) -> h.post(() -> {
+        lyrics.fetch(title, artist, duration, (k, msg) -> h.post(() -> {
             if (!k.equals(lyricKey)) return;
             lastLyrics = msg;
             send(msg);

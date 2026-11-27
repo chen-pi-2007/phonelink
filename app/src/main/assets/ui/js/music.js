@@ -67,6 +67,7 @@
     $('pp').setAttribute('d', playing ? PAUSE : PLAY);
     document.body.classList.toggle('playing', playing);
     renderSources(s);
+    if (changed) showOffset();
     if (!lines.length && s.line) {
       var inner = $('lyrics-inner'), d = inner.firstChild;
       if (d && d.textContent !== s.line) {
@@ -136,8 +137,27 @@
     });
   }
 
+  // ---------- 歌词时间微调（按歌记住；正值=歌词推后，负值=歌词提前） ----------
+  var offsets = {};
+  try { offsets = JSON.parse(localStorage.getItem('pl-lyoff') || '{}'); } catch (e) {}
+  function songKey() { return st ? (st.title || '') + '|' + (st.artist || '') : ''; }
+  function curOffset() { return offsets[songKey()] || 0; }
+  function showOffset() {
+    var o = curOffset() / 1000, el = document.getElementById('off-val');
+    if (el) el.textContent = (o > 0 ? '+' : '') + o.toFixed(1) + 's';
+  }
+  PL.lyricOffset = function (deltaMs) {
+    var k = songKey(); if (!k) return;
+    var v = Math.max(-10000, Math.min(10000, curOffset() + deltaMs));
+    if (deltaMs === 0) v = 0;
+    if (v) offsets[k] = v; else delete offsets[k];
+    try { localStorage.setItem('pl-lyoff', JSON.stringify(offsets)); } catch (e) {}
+    showOffset(); curLine = -2; // 立即按新偏移重新定位当前行
+  };
+
   function tickLyrics(pos) {
     if (!lines.length) return;
+    pos -= curOffset(); // 推后 = 用更早的时间点去找歌词
     var i = L.indexAt(lines, pos);
     if (i !== curLine) {
       if (lyricEls[curLine]) lyricEls[curLine].classList.remove('cur', 'karaoke');
@@ -321,5 +341,10 @@
   }
 
   PL.on('state', render);
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('off-minus').addEventListener('click', function () { PL.lyricOffset(-500); });
+    document.getElementById('off-plus').addEventListener('click', function () { PL.lyricOffset(500); });
+    document.getElementById('off-val').addEventListener('click', function () { PL.lyricOffset(0); });
+  });
   document.addEventListener('DOMContentLoaded', function () { bindButtons(); bindGestures(); requestAnimationFrame(loop); });
 })();

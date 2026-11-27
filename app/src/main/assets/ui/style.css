@@ -313,3 +313,7 @@ body.gl-on #bg { display: none; }
 
 /* 设置面板内容多：限制高度并允许上下滚动 */
 .sheet-card { max-height: 88vh; overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+
+/* 歌词时间微调 */
+.seg.offset .lmode { font-size: 15px; }
+.seg.offset .off-val { flex: .7; background: rgba(255,255,255,.12); color: #fff; font-variant-numeric: tabular-nums; }

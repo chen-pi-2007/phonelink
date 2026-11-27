@@ -34,5 +34,10 @@ public class YrcParserTest {
         // 翻唱上传常见格式：标题里夹人名和书名号，取《》里的歌名
         assertEquals("人生起起落落", LyricsMatch.searchTitle("周子洋、仔仔《人生起起落落》（翻唱）"));
         assertEquals("晴天", LyricsMatch.searchTitle("晴天"));
+        // 时长比对：同版本加分，明显不同版本扣分，未知时长不影响
+        assertEquals(30, LyricsMatch.durationBonus(240_000, 241_500));
+        assertEquals(0, LyricsMatch.durationBonus(240_000, 245_000));
+        assertEquals(-60, LyricsMatch.durationBonus(240_000, 300_000));
+        assertEquals(0, LyricsMatch.durationBonus(0, 241_000));
     }
 }
