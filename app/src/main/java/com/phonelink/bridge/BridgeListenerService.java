@@ -55,6 +55,8 @@ public class BridgeListenerService extends NotificationListenerService {
     private static final String CH = "bridge";
 
     static volatile String status = "未启动";
+    /** 给主手机首页显示：当前在放什么、连着哪台副屏（不额外耗电，只是记下已有的数据） */
+    static volatile String nowTitle = "", nowArtist = "", nowApp = "", nowArt = "", displayName = "";
 
     private HandlerThread worker;
     private Handler h;
@@ -334,8 +336,20 @@ public class BridgeListenerService extends NotificationListenerService {
         pushState();
     }
 
+    /** 没连副屏时只记下歌名（给首页看），不编码封面、不发送，省电 */
+    private void snapshotNow() {
+        MediaController c = current;
+        if (c == null) { nowTitle = ""; nowArtist = ""; nowApp = ""; return; }
+        nowApp = appLabel(c.getPackageName());
+        MediaMetadata m = c.getMetadata();
+        if (m != null) {
+            nowTitle = str(m, MediaMetadata.METADATA_KEY_TITLE);
+            nowArtist = str(m, MediaMetadata.METADATA_KEY_ARTIST);
+        }
+    }
+
     private void pushState() {
-        if (out == null) return;
+        if (out == null) { snapshotNow(); return; }
         try {
             JSONObject o = new JSONObject();
             o.put("t", "state");
@@ -411,12 +425,15 @@ public class BridgeListenerService extends NotificationListenerService {
                 o.put("queue", arr);
             }
             String effTitle = null, effArtist = null;
+            nowApp = appLabel(pkg);
             if (m != null) {
                 String[] fixed = fixCarLyrics(pkg, m, o.optLong("pos"));
                 effTitle = fixed[0];
                 effArtist = fixed[1];
                 o.put("title", effTitle);
                 o.put("artist", effArtist);
+                nowTitle = effTitle;
+                nowArtist = effArtist;
                 if (fixed[2] != null) o.put("line", fixed[2]); // 播放器塞进来的实时歌词
             }
             send(o);
@@ -441,6 +458,7 @@ public class BridgeListenerService extends NotificationListenerService {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             scaled.compress(Bitmap.CompressFormat.JPEG, 75, bos);
             lastArtB64 = Base64.encodeToString(bos.toByteArray(), Base64.NO_WRAP);
+            nowArt = lastArtB64;
             lastArtKey = key;
             artSent = false;
         }
@@ -540,7 +558,8 @@ public class BridgeListenerService extends NotificationListenerService {
                 closeSocket();
                 socket = s;
                 out = s.getOutputStream();
-                status = "已连接 " + s.getRemoteDevice().getName();
+                displayName = s.getRemoteDevice().getName();
+                status = "已连接 " + displayName;
                 artSent = false;
                 iconSent.clear();
                 h.post(() -> {
@@ -654,6 +673,7 @@ public class BridgeListenerService extends NotificationListenerService {
 
     private void closeSocket() {
         out = null;
+        displayName = "";
         beat.stop(); // 断开即停律动
         BluetoothSocket s = socket;
         socket = null;

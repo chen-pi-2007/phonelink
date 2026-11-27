@@ -32,9 +32,9 @@ public class SourceActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
-        getWindow().setStatusBarColor(Color.parseColor("#07090d"));
+        getWindow().setStatusBarColor(Color.BLACK);
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#07090d"));
+        web.setBackgroundColor(Color.BLACK);
         WebSettings ws = web.getSettings();
         ws.setJavaScriptEnabled(true);
         ws.setAllowFileAccess(true);
@@ -54,6 +54,12 @@ public class SourceActivity extends Activity {
         if (System.currentTimeMillis() - lastCheck > 6 * 3600_000L || getIntent().getBooleanExtra("update", false)) {
             checkUpdate(false);
         }
+    }
+
+    /** 返回键：先关掉设置页，再退出 */
+    @Override
+    public void onBackPressed() {
+        web.evaluateJavascript("PLS.back()", v -> { if (!"true".equals(v)) SourceActivity.super.onBackPressed(); });
     }
 
     @Override
@@ -76,6 +82,11 @@ public class SourceActivity extends Activity {
                 o.put("ver", Updater.myVersionName(SourceActivity.this));
                 o.put("android", Build.VERSION.RELEASE);
                 o.put("model", Build.MODEL);
+                o.put("display", BridgeListenerService.displayName);
+                o.put("nowTitle", BridgeListenerService.nowTitle);
+                o.put("nowArtist", BridgeListenerService.nowArtist);
+                o.put("nowApp", BridgeListenerService.nowApp);
+                o.put("nowArt", BridgeListenerService.nowArt);
                 return o.toString();
             } catch (Exception e) {
                 return "{}";
@@ -136,7 +147,7 @@ public class SourceActivity extends Activity {
 
     private void checkUpdate(boolean manual) {
         busy = true;
-        if (manual) setUpdate("正在检查更新…", "", false);
+        if (manual) setUpdate("正在检查…", "", false);
         new Thread(() -> {
             Updater.Info info = Updater.fetchLatest();
             Proto.prefs(this).edit().putLong("last_update_check", System.currentTimeMillis()).apply();
@@ -144,12 +155,12 @@ public class SourceActivity extends Activity {
                 busy = false;
                 String mine = Updater.myVersionName(this);
                 if (info == null) {
-                    if (manual) setUpdate("检查失败", "网络不通，点这里重试", false);
+                    if (manual) setUpdate("检查失败，点击重试", "", false);
                 } else if (info.versionCode > Updater.myVersion(this)) {
                     pending = info;
-                    setUpdate("有新版 v" + info.versionName + " · 点这里更新", info.notes, true);
+                    setUpdate("有新版本，点击更新", "v" + info.versionName, true);
                 } else {
-                    setUpdate("已是最新版", "当前 v" + mine, false);
+                    setUpdate("已是最新版", "v" + mine, false);
                 }
             });
         }).start();
@@ -157,20 +168,20 @@ public class SourceActivity extends Activity {
 
     private void downloadUpdate() {
         busy = true;
-        setUpdate("正在下载 v" + pending.versionName + "…", "", true);
+        setUpdate("正在下载…", "v" + pending.versionName, true);
         new Thread(() -> {
             try {
                 java.io.File f = Updater.download(this, pending, m -> {});
                 ui.post(() -> { busy = false; downloaded = f; install(f); });
             } catch (Exception e) {
-                ui.post(() -> { busy = false; setUpdate("下载失败", e.getMessage() + "，点这里重试", false); });
+                ui.post(() -> { busy = false; setUpdate("下载失败，点击重试", "", false); });
             }
         }).start();
     }
 
     /** 优先用自我更新会话（安卓 12+ 之后可免确认）；不行再弹系统安装界面 */
     private void install(java.io.File f) {
-        setUpdate("正在安装 v" + pending.versionName + "…", "装完会自动恢复连接", true);
+        setUpdate("正在安装…", "v" + pending.versionName, true);
         new Thread(() -> {
             try {
                 Updater.installSession(this, f);
