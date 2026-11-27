@@ -1,13 +1,13 @@
 {
-  "versionCode": 17,
-  "versionName": "0.9.1",
-  "notes": "走远时及时显示断开，断开2分钟后停止重连省电（可手动重新连接）；修复开启车载蓝牙歌词时搜不到歌词；连接动画放慢",
-  "sha256": "8cd2119acd7ff633df9c48d6de52c14d744b4126699cbc0b1f5765803bf74f15",
-  "size": 88929,
+  "versionCode": 18,
+  "versionName": "0.9.2",
+  "notes": "镜头律动重做（更跟拍、不乱抖）；节拍只跟低音鼓；车载歌词兼容；翻唱歌曲也能搜到歌词；主手机会被提示更新",
+  "sha256": "9a9435f6d585398b4e68c334fc2353e930bc50f7a0d94c7911721cb6c0046ac5",
+  "size": 90721,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/35fc3777573cdc0d3a0fb7a255e6ee6c44ddc9e4/dist/PhoneLink-v0.9.1.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/35fc3777573cdc0d3a0fb7a255e6ee6c44ddc9e4/dist/PhoneLink-v0.9.1.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.1/PhoneLink-v0.9.1.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.1/PhoneLink-v0.9.1.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/ea5f4d976bd64176bbb21ee3af9d0b91dc8ed2d0/dist/PhoneLink-v0.9.2.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/ea5f4d976bd64176bbb21ee3af9d0b91dc8ed2d0/dist/PhoneLink-v0.9.2.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.2/PhoneLink-v0.9.2.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.2/PhoneLink-v0.9.2.apk"
   ]
 }
