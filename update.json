@@ -1,13 +1,13 @@
 {
-  "versionCode": 16,
-  "versionName": "0.9.0",
-  "notes": "新增光晕/行星/隧道主题、舞台歌词样式、跟随节拍的电影镜头效果",
-  "sha256": "2ff6d4933668fbec00a2f939f606ba0370d0e4130c0a374330a6c1cf7bad2c8f",
-  "size": 87361,
+  "versionCode": 17,
+  "versionName": "0.9.1",
+  "notes": "走远时及时显示断开，断开2分钟后停止重连省电（可手动重新连接）；修复开启车载蓝牙歌词时搜不到歌词；连接动画放慢",
+  "sha256": "8cd2119acd7ff633df9c48d6de52c14d744b4126699cbc0b1f5765803bf74f15",
+  "size": 88929,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/4d401cc38939d60183b99679c0b696824875c2ef/dist/PhoneLink-v0.9.0.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/4d401cc38939d60183b99679c0b696824875c2ef/dist/PhoneLink-v0.9.0.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.0/PhoneLink-v0.9.0.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.0/PhoneLink-v0.9.0.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/35fc3777573cdc0d3a0fb7a255e6ee6c44ddc9e4/dist/PhoneLink-v0.9.1.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/35fc3777573cdc0d3a0fb7a255e6ee6c44ddc9e4/dist/PhoneLink-v0.9.1.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.1/PhoneLink-v0.9.1.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.9.1/PhoneLink-v0.9.1.apk"
   ]
 }
