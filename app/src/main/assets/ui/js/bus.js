@@ -33,6 +33,7 @@
     // 连接标签带上主手机版本（旧版主手机不发 ver，显示“需更新”）
     var c = document.getElementById('conn');
     document.getElementById('set-hostver').textContent = s.ver ? 'v' + s.ver : '较旧，请在主手机上更新';
+    checkHostVersion(s.ver);
     nextAlarm = s.nextAlarm || 0;
     renderAlarm();
   });
@@ -76,7 +77,7 @@
     // 放弃自动重连后：波纹停下，显示“重新连接”按钮
     off.classList.toggle('stopped', !m.up && !!m.gaveUp);
     document.getElementById('reconnect').classList.toggle('hidden', !(!m.up && m.gaveUp));
-    if (!m.up && m.gaveUp) document.getElementById('offline-title').textContent = '已断开';
+    if (!m.up && m.gaveUp) document.getElementById('offline-title').textContent = '未连接';
     wasUp = !!m.up;
     if (m.text && !m.up) document.getElementById('offline-text').textContent = m.text;
     var c = document.getElementById('conn');
@@ -118,6 +119,28 @@
   document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('reconnect').addEventListener('click', function () {
       if (window.PLNative && window.PLNative.reconnect) window.PLNative.reconnect();
+    });
+  });
+
+  // 主手机版本比副屏旧：顶部提示，点一下让主手机自动下载安装
+  function verNum(v) { return String(v || '0').split('.').reduce(function (a, x) { return a * 1000 + (parseInt(x, 10) || 0); }, 0); }
+  var updAsked = false;
+  function checkHostVersion(hostVer) {
+    var N = window.PLNative, mine = N && N.version ? N.version() : null, b = document.getElementById('upd-banner');
+    var older = mine && verNum(hostVer) < verNum(mine);
+    b.classList.toggle('hidden', !older);
+    var canRemote = verNum(hostVer) >= verNum('0.9.3'); // 0.9.3 起主手机才支持被副屏触发自动更新
+    b.dataset.remote = canRemote ? '1' : '';
+    if (older && !updAsked) b.textContent = canRemote
+      ? '主手机需要更新（v' + hostVer + ' → v' + mine + '）· 点这里更新'
+      : '主手机版本较旧（v' + (hostVer || '?') + '），请在主手机上打开“手机副屏”点一次检查更新';
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('upd-banner').addEventListener('click', function () {
+      if (!this.dataset.remote) return;
+      updAsked = true;
+      PL.send({ t: 'cmd', c: 'update' });
+      this.textContent = '已通知主手机更新，装完会自动重连';
     });
   });
 

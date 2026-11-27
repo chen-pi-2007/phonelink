@@ -125,6 +125,33 @@ final class Updater {
         Runtime.getRuntime().exec(new String[]{"su", "-c", cmd}).waitFor();
     }
 
+    /**
+     * 后台安装：用 PackageInstaller 会话自我更新。安卓 12+ 若本 App 是“安装来源”则免确认静默安装；
+     * 否则系统回调 STATUS_PENDING_USER_ACTION，由 InstallResultReceiver 发通知让用户点一下。
+     */
+    static void installSession(Context c, File apk) throws Exception {
+        android.content.pm.PackageInstaller pi = c.getPackageManager().getPackageInstaller();
+        android.content.pm.PackageInstaller.SessionParams p = new android.content.pm.PackageInstaller.SessionParams(
+                android.content.pm.PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+        p.setAppPackageName(c.getPackageName());
+        if (android.os.Build.VERSION.SDK_INT >= 31) {
+            p.setRequireUserAction(android.content.pm.PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED);
+        }
+        int id = pi.createSession(p);
+        try (android.content.pm.PackageInstaller.Session s = pi.openSession(id)) {
+            try (InputStream in = new FileInputStream(apk); java.io.OutputStream out = s.openWrite("update.apk", 0, apk.length())) {
+                byte[] buf = new byte[65536];
+                int n;
+                while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                s.fsync(out);
+            }
+            Intent cb = new Intent(c, InstallResultReceiver.class).setAction("com.phonelink.bridge.INSTALL_RESULT");
+            int flags = android.app.PendingIntent.FLAG_UPDATE_CURRENT
+                    | (android.os.Build.VERSION.SDK_INT >= 31 ? android.app.PendingIntent.FLAG_MUTABLE : 0);
+            s.commit(android.app.PendingIntent.getBroadcast(c, id, cb, flags).getIntentSender());
+        }
+    }
+
     static String sha256(byte[] d) throws Exception {
         return hex(MessageDigest.getInstance("SHA-256").digest(d));
     }

@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
     <!-- 安卓 11+ 软件包可见性：不声明就拿不到其他 App 的名字，只能显示包名 -->
     <queries>
@@ -71,6 +72,8 @@
             android:authorities="com.phonelink.bridge.apk"
             android:exported="false"
             android:grantUriPermissions="true" />
+
+        <receiver android:name=".InstallResultReceiver" android:exported="false" />
 
         <receiver android:name=".UpdatedReceiver" android:exported="false">
             <intent-filter>

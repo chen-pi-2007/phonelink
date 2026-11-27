@@ -276,3 +276,17 @@ body.lyric-stage .ly.empty { opacity: 1; filter: none; transform: none; }
 
 /* 舞台歌词辉光随节拍脉冲（与镜头同一个事件驱动） */
 body.lyric-stage .ly.cur { text-shadow: 0 0 calc(18px + var(--beat, 0) * 26px) rgba(255,255,255,calc(.35 + var(--beat, 0) * .4)), 0 0 4px rgba(255,255,255,.6); }
+
+/* 已停止自动重连：只留手机 + 红色斜杠 + “未连接” + 重新连接按钮 */
+.radar-slash { position: absolute; top: 50%; left: 50%; width: 92px; height: 92px; margin: -46px 0 0 -46px;
+  stroke: #ff4d4f; fill: none; opacity: 0; transform: scale(.6); transition: opacity .35s, transform .35s var(--spring); }
+.offline.stopped .radar i { opacity: 0 !important; }
+.offline.stopped .radar-slash { opacity: 1; transform: none; }
+.offline.stopped .radar-phone { fill: rgba(255,255,255,.75); }
+.offline.stopped .off-text, .offline.stopped .off-hint { display: none; }
+.offline.stopped .off-title { font-size: 30px; }
+
+/* 主手机需要更新的提示条 */
+.upd-banner { position: fixed; z-index: 6; left: 20px; right: 20px; bottom: calc(26px + 76px + 64px); /* 在进度条上方，不压住进度 */
+  padding: 12px 16px; border-radius: 16px; background: rgba(255,190,70,.95); color: #1a1200; font-size: 16px;
+  font-weight: 700; text-align: center; box-shadow: 0 10px 26px rgba(0,0,0,.4); animation: rise .45s var(--ease-out); }

@@ -483,6 +483,7 @@ public class BridgeListenerService extends NotificationListenerService {
     }
 
     private void handleCommand(JSONObject o) {
+        if ("update".equals(o.optString("c"))) { autoUpdate(true); return; }
         if ("pin".equals(o.optString("c"))) {
             String p = o.optString("p");
             pinnedPkg = p.isEmpty() ? null : p;
@@ -598,30 +599,36 @@ public class BridgeListenerService extends NotificationListenerService {
 
     /** 每 12 小时查一次新版本，有就发通知，点开设置页更新。 */
     private long lastUpdateCheck;
+    private volatile boolean updating;
+
+    /** 后台自动更新：查新版 → 下载校验 → 自我安装。userAsked=false 时，连着副屏就先不装，避免骑行中断。 */
+    private void autoUpdate(boolean userAsked) {
+        if (updating) return;
+        updating = true;
+        new Thread(() -> {
+            try {
+                Updater.Info info = Updater.fetchLatest();
+                if (info == null || info.versionCode <= Updater.myVersion(this)) return;
+                java.io.File f = Updater.download(this, info, m -> {});
+                if (!userAsked) {
+                    // 等到没连副屏时再装（最多等 6 小时）
+                    for (int i = 0; i < 720 && out != null && running; i++) sleep(30_000);
+                }
+                Updater.installSession(this, f);
+            } catch (Exception e) {
+                Log.w(TAG, "autoUpdate", e);
+            } finally {
+                updating = false;
+            }
+        }, "auto-update").start();
+    }
 
     private void scheduleUpdateCheck(long delay) {
         if (delay == 0 && SystemClock.elapsedRealtime() - lastUpdateCheck < 10 * 60_000L) return;
         h.postDelayed(() -> {
             lastUpdateCheck = SystemClock.elapsedRealtime();
             if (!running) return;
-            new Thread(() -> {
-                Updater.Info info = Updater.fetchLatest();
-                if (info != null && info.versionCode > Updater.myVersion(this)) {
-                    NotificationManager nm = getSystemService(NotificationManager.class);
-                    nm.createNotificationChannel(new NotificationChannel("update", "版本更新", NotificationManager.IMPORTANCE_DEFAULT));
-                    PendingIntent pi = PendingIntent.getActivity(this, 1,
-                            new Intent(this, SourceActivity.class).putExtra("update", true)
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                            PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-                    nm.notify(2, new Notification.Builder(this, "update")
-                            .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                            .setContentTitle("手机副屏有新版 v" + info.versionName)
-                            .setContentText(info.notes.isEmpty() ? "点击更新" : info.notes)
-                            .setContentIntent(pi)
-                            .setAutoCancel(true)
-                            .build());
-                }
-            }).start();
+            autoUpdate(false);
             if (delay != 0) scheduleUpdateCheck(12 * 3600_000L); // 立即检查不再额外排定时，避免叠加
         }, delay);
     }
