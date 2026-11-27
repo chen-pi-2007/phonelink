@@ -104,6 +104,17 @@ public class BridgeListenerService extends NotificationListenerService {
     public void onListenerConnected() {
         super.onListenerConnected();
         if (running) return;
+        status = "服务已启动，正在初始化…";
+        try {
+            init();
+        } catch (Throwable e) {
+            // 把启动失败的原因直接显示在设置页，方便排查
+            status = "启动出错：" + e;
+            Log.e(TAG, "init failed", e);
+        }
+    }
+
+    private void init() {
         running = true;
         startFg();
         worker = new HandlerThread("bridge");

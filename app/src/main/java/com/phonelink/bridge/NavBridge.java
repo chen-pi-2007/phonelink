@@ -33,14 +33,15 @@ import java.util.Set;
 final class NavBridge {
     interface Sink { void send(JSONObject o); }
 
-    static final Set<String> MAP_PKGS = Set.of(
+    // 不用 Set.of（安卓 11 才有），兼容更老的系统
+    static final Set<String> MAP_PKGS = new java.util.HashSet<>(java.util.Arrays.asList(
             "com.autonavi.minimap",      // 高德地图
             "com.autonavi.amapauto",     // 高德车机版
             "com.autonavi.amapautolite",
             "com.baidu.BaiduMap",        // 百度地图
             "com.baidu.naviauto",
             "com.tencent.map",           // 腾讯地图
-            "com.sogou.map.android.maps");
+            "com.sogou.map.android.maps"));
 
     private static final String AMAP_ACTION = "AUTONAVI_STANDARD_BROADCAST_SEND";
     private static final long LOG_LIMIT = 300 * 1024;

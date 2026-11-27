@@ -196,8 +196,13 @@ public class SourceActivity extends Activity {
 
     private final Runnable tick = new Runnable() {
         @Override public void run() {
+            String st = BridgeListenerService.status;
+            if (listenerEnabled() && "未启动".equals(st)) {
+                st = "未启动 —— 系统没有拉起服务：请点①，把“手机副屏”的开关关掉再打开";
+            }
             statusView.setText("通知使用权：" + (listenerEnabled() ? "已开启" : "未开启")
-                    + "\n连接状态：" + BridgeListenerService.status);
+                    + "\n连接状态：" + st
+                    + "\n系统：安卓 " + Build.VERSION.RELEASE + " · " + Build.MODEL);
             ui.postDelayed(this, 1000);
         }
     };
