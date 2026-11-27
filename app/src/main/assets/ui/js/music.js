@@ -181,8 +181,9 @@
     pos -= curOffset(); // 推后 = 用更早的时间点去找歌词
     var i = L.indexAt(lines, pos);
     if (i !== curLine) {
-      if (lyricEls[curLine]) lyricEls[curLine].classList.remove('cur', 'karaoke');
-      if (lyricEls[curLine + 1]) lyricEls[curLine + 1].classList.remove('next');
+      // 清掉所有旧高亮（重新校准时间后 curLine 被重置，不能只清上一行）
+      var olds = document.querySelectorAll('#lyrics-inner .ly.cur, #lyrics-inner .ly.next');
+      for (var oi = 0; oi < olds.length; oi++) olds[oi].classList.remove('cur', 'karaoke', 'next');
       if (lyricEls[curLine]) lyricEls[curLine].classList.add('past');
       curLine = i;
       var el = lyricEls[i];
