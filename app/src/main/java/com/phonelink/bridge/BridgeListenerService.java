@@ -279,6 +279,10 @@ public class BridgeListenerService extends NotificationListenerService {
             }
             o.put("sessions", ss);
             o.put("pinned", pinnedPkg == null ? "" : pinnedPkg);
+            // 主手机的下一个闹钟（系统接口，无需权限），副屏显示在时钟旁
+            android.app.AlarmManager.AlarmClockInfo alarm =
+                    getSystemService(android.app.AlarmManager.class).getNextAlarmClock();
+            o.put("nextAlarm", alarm == null ? 0 : alarm.getTriggerTime());
             MediaController c = current;
             if (c == null) {
                 o.put("none", true);

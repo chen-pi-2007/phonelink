@@ -169,6 +169,13 @@
       cover.style.transition = '';
       cover.style.transform = ''; cover.style.opacity = '';
       pendingSwipe = 0;
+      // 兜底：1.5 秒内没换歌（如已是最后一首），恢复原封面，避免一直停在占位
+      var keyAtSwipe = trackKey;
+      setTimeout(function () {
+        if (trackKey === keyAtSwipe && $('cover-img').src) {
+          $('cover-img').classList.add('show'); cover.classList.add('loaded');
+        }
+      }, 1500);
     }, 300);
   }
   function landCover() { /* 新歌到达：交叉淡入由 setArt 处理 */ }

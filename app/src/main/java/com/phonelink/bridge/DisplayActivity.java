@@ -210,6 +210,31 @@ public class DisplayActivity extends Activity {
         qp.bottomMargin = dp(80);
         frame.addView(queuePanel, qp);
 
+        // 新界面：网页铺在原生界面之上（原生界面保留作为数据处理和后备），选主手机面板仍在最上层
+        web = new android.webkit.WebView(this);
+        android.webkit.WebSettings ws = web.getSettings();
+        ws.setJavaScriptEnabled(true);
+        ws.setAllowFileAccess(true);
+        ws.setDomStorageEnabled(true);
+        web.setBackgroundColor(Color.BLACK);
+        web.addJavascriptInterface(new Object() {
+            @android.webkit.JavascriptInterface
+            public void send(String json) {
+                try { sendJson(new JSONObject(json)); } catch (Exception ignored) {}
+            }
+            @android.webkit.JavascriptInterface
+            public void pickHost() { ui.post(DisplayActivity.this::showPicker); }
+        }, "PLNative");
+        web.setWebViewClient(new android.webkit.WebViewClient() {
+            @Override public void onPageFinished(android.webkit.WebView v, String url) {
+                webReady = true;
+                pushConn();
+                if (last != null) toWeb(last.toString());
+            }
+        });
+        web.loadUrl("file:///android_asset/ui/index.html");
+        frame.addView(web, 1, new FrameLayout.LayoutParams(-1, -1));
+
         setContentView(frame);
         statusView.setText("正在连接主手机…（长按此处选择主手机）  v" + Updater.myVersionName(this));
         titleView.setText("未连接");
@@ -443,6 +468,7 @@ public class DisplayActivity extends Activity {
         super.onResume();
         foreground = true;
         synchronized (wake) { wake.notifyAll(); }
+        if (web != null) web.onResume();
     }
 
     @Override
@@ -451,6 +477,7 @@ public class DisplayActivity extends Activity {
         // 灭屏或切到别的 App：断开连接，主手机回到待机，不耗电
         foreground = false;
         closeQuietly();
+        if (web != null) web.onPause(); // 不在前台时停止渲染，省电
     }
 
     private void waitWake(long ms) {
@@ -494,6 +521,8 @@ public class DisplayActivity extends Activity {
                     failures = 0;
                     setStatus("已连接 " + dev.getName());
                     connected = true;
+                    connName = dev.getName();
+                    ui.post(this::pushConn);
                     JSONObject hello = new JSONObject();
                     hello.put("t", "hello");
                     hello.put("ver", Updater.myVersion(this));
@@ -504,6 +533,8 @@ public class DisplayActivity extends Activity {
                         try {
                             JSONObject o = new JSONObject(line);
                             String t = o.optString("t");
+                            final String raw = line;
+                            if (!"chunk".equals(t)) ui.post(() -> toWeb(raw));
                             if ("state".equals(t)) ui.post(() -> render(o));
                             else if ("nav".equals(t)) ui.post(() -> renderNav(o));
                             else onUpdatePacket(t, o);
@@ -515,6 +546,7 @@ public class DisplayActivity extends Activity {
                 }
                 closeQuietly();
                 connected = false;
+                ui.post(this::pushConn);
                 ui.post(() -> renderNav(null));
                 if (foreground) {
                     ui.post(() -> titleView.setText("未连接主手机"));
@@ -609,7 +641,35 @@ public class DisplayActivity extends Activity {
         ui.postDelayed(this::onlineUpdateCheck, 6 * 3600_000L);
     }
 
-    private void setStatus(String s) { ui.post(() -> statusView.setText(s)); }
+    private void setStatus(String s) {
+        ui.post(() -> {
+            statusView.setText(s);
+            lastStatus = s;
+            if (!connected) pushConn();
+        });
+    }
+
+    // ---------------- 网页界面桥接 ----------------
+
+    private android.webkit.WebView web;
+    private boolean webReady;
+    private String connName = "", lastStatus = "正在连接主手机…";
+
+    private void toWeb(String json) {
+        if (web == null || !webReady) return;
+        web.evaluateJavascript("PL.onMessage(" + JSONObject.quote(json) + ")", null);
+    }
+
+    private void pushConn() {
+        try {
+            JSONObject o = new JSONObject();
+            o.put("t", "conn");
+            o.put("up", connected);
+            o.put("name", connName);
+            o.put("text", lastStatus);
+            toWeb(o.toString());
+        } catch (Exception ignored) {}
+    }
 
     private void sendCmd(String c, long v) {
         try {
