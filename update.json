@@ -1,13 +1,13 @@
 {
-  "versionCode": 9,
-  "versionName": "0.7.0",
-  "notes": "歌词：主手机按歌名自动搜网易云歌词并滚动显示；律动：用真实音乐节拍驱动粒子（需在主手机设置页点⑥授权）",
-  "sha256": "5fd90f702fecfc68f8e30087d2e3d1080aea6cdbd95402034d7a0f6a7305f36a",
-  "size": 76138,
+  "versionCode": 10,
+  "versionName": "0.7.1",
+  "notes": "去掉点击按钮后出现的黄色框",
+  "sha256": "3de9ec26380cfc3ea0be3a8ee9bd5716a233b69ede674bd7a89edb191ca74580",
+  "size": 76234,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/35189eb73381ba3ab37d2dca5396da45ac16823e/dist/PhoneLink-v0.7.0.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/35189eb73381ba3ab37d2dca5396da45ac16823e/dist/PhoneLink-v0.7.0.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.0/PhoneLink-v0.7.0.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.0/PhoneLink-v0.7.0.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/ff2d775a8eb46c04d1eaeeb96c27e3c311bd6a70/dist/PhoneLink-v0.7.1.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/ff2d775a8eb46c04d1eaeeb96c27e3c311bd6a70/dist/PhoneLink-v0.7.1.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.1/PhoneLink-v0.7.1.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.1/PhoneLink-v0.7.1.apk"
   ]
 }
