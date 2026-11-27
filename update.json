@@ -1,13 +1,13 @@
 {
-  "versionCode": 22,
-  "versionName": "0.10.1",
-  "notes": "主手机界面重做：首页简洁只看状态和正在同步的歌，其余功能收进右上角设置",
-  "sha256": "2b9f79d247ed7ad70095e6520163aa2de5557bbf328d353fdfa3ecd685cb4132",
-  "size": 251456,
+  "versionCode": 23,
+  "versionName": "0.10.2",
+  "notes": "歌词更准：优先匹配时长一致的版本；副屏设置里可微调本首歌词时间（自动记住）",
+  "sha256": "95941479ce048a1d05cdefdc14c604ee894dec30b2e7f8c33bd81eb46ac81f99",
+  "size": 252304,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/fdb50bcce87b22f8e520797a0c216fcfbc28aa8d/dist/PhoneLink-v0.10.1.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/fdb50bcce87b22f8e520797a0c216fcfbc28aa8d/dist/PhoneLink-v0.10.1.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.1/PhoneLink-v0.10.1.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.1/PhoneLink-v0.10.1.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/3c5d294abd7c1aac714dd0b6f306535a21e06f53/dist/PhoneLink-v0.10.2.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/3c5d294abd7c1aac714dd0b6f306535a21e06f53/dist/PhoneLink-v0.10.2.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.2/PhoneLink-v0.10.2.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.2/PhoneLink-v0.10.2.apk"
   ]
 }
