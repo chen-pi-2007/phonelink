@@ -1,13 +1,13 @@
 {
-  "versionCode": 8,
-  "versionName": "0.6.0",
-  "notes": "全新副屏界面：流动背景+律动粒子、Apple Music式歌词、左右滑切歌、上下滑导航页、导航插播、大号时钟和主手机闹钟",
-  "sha256": "0096c222dd290b2bca30bd1641ca8dc3f3e9469790007eb621d4c1bfcfd3cc0a",
-  "size": 70178,
+  "versionCode": 9,
+  "versionName": "0.7.0",
+  "notes": "歌词：主手机按歌名自动搜网易云歌词并滚动显示；律动：用真实音乐节拍驱动粒子（需在主手机设置页点⑥授权）",
+  "sha256": "5fd90f702fecfc68f8e30087d2e3d1080aea6cdbd95402034d7a0f6a7305f36a",
+  "size": 76138,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/0aadfa97bd117b1944ed3290f484e72b21435380/dist/PhoneLink-v0.6.0.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/0aadfa97bd117b1944ed3290f484e72b21435380/dist/PhoneLink-v0.6.0.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.6.0/PhoneLink-v0.6.0.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.6.0/PhoneLink-v0.6.0.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/35189eb73381ba3ab37d2dca5396da45ac16823e/dist/PhoneLink-v0.7.0.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/35189eb73381ba3ab37d2dca5396da45ac16823e/dist/PhoneLink-v0.7.0.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.0/PhoneLink-v0.7.0.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.7.0/PhoneLink-v0.7.0.apk"
   ]
 }
