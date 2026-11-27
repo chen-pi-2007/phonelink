@@ -1,13 +1,13 @@
 {
-  "versionCode": 24,
-  "versionName": "0.10.3",
-  "notes": "歌词同步修复：不再使用时长对不上的错误版本；开启车载蓝牙歌词时自动校准，跟着播放器走",
-  "sha256": "f196dca22571c9fa3834ce7064b134bd92e820d40825de1f1b61f3057c98c67c",
-  "size": 252844,
+  "versionCode": 25,
+  "versionName": "0.10.4",
+  "notes": "修复歌词同时两行高亮",
+  "sha256": "2ed370fe4ada4a840f5b29e2c403c2a23f43162b10b9d288d5dccb558765b5b0",
+  "size": 252936,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/20ed1211e5d92e2a429843dcc4a827446d71cee0/dist/PhoneLink-v0.10.3.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/20ed1211e5d92e2a429843dcc4a827446d71cee0/dist/PhoneLink-v0.10.3.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.3/PhoneLink-v0.10.3.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.3/PhoneLink-v0.10.3.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/31602b3139df2322ea28efcde5cd2ecb69f8a28b/dist/PhoneLink-v0.10.4.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/31602b3139df2322ea28efcde5cd2ecb69f8a28b/dist/PhoneLink-v0.10.4.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.4/PhoneLink-v0.10.4.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.4/PhoneLink-v0.10.4.apk"
   ]
 }
