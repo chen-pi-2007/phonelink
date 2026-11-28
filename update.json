@@ -1,13 +1,13 @@
 {
-  "versionCode": 25,
-  "versionName": "0.10.4",
-  "notes": "修复歌词同时两行高亮",
-  "sha256": "2ed370fe4ada4a840f5b29e2c403c2a23f43162b10b9d288d5dccb558765b5b0",
-  "size": 252936,
+  "versionCode": 26,
+  "versionName": "0.10.5",
+  "notes": "导航同步修复：先开导航再连副屏也能显示；兼容地图的自定义通知样式",
+  "sha256": "536f78db21a0efc0b1702577bc605b827d11d7522efb4e473c53838ec2fcbd84",
+  "size": 254472,
   "apk": [
-    "https://gitee.com/Chenpi167/phonelink/raw/31602b3139df2322ea28efcde5cd2ecb69f8a28b/dist/PhoneLink-v0.10.4.apk",
-    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/31602b3139df2322ea28efcde5cd2ecb69f8a28b/dist/PhoneLink-v0.10.4.apk",
-    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.4/PhoneLink-v0.10.4.apk",
-    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.4/PhoneLink-v0.10.4.apk"
+    "https://gitee.com/Chenpi167/phonelink/raw/c9c5957da14e0626b283e91e58250d354224c5ad/dist/PhoneLink-v0.10.5.apk",
+    "https://raw.githubusercontent.com/chen-pi-2007/phonelink/c9c5957da14e0626b283e91e58250d354224c5ad/dist/PhoneLink-v0.10.5.apk",
+    "https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.5/PhoneLink-v0.10.5.apk",
+    "https://ghfast.top/https://github.com/chen-pi-2007/phonelink/releases/download/v0.10.5/PhoneLink-v0.10.5.apk"
   ]
 }
