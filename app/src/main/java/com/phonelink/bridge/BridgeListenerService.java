@@ -132,7 +132,7 @@ public class BridgeListenerService extends NotificationListenerService {
             }
             pickController();
         });
-        nav = new NavBridge(this, o -> h.post(() -> send(o)), () -> out != null);
+        nav = new NavBridge(this, o -> h.post(() -> send(o)), () -> out != null, this::getActiveNotifications);
         nav.start();
         new Thread(this::serverLoop, "bt-server").start();
         scheduleUpdateCheck(60_000L);

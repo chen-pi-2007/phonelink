@@ -33,6 +33,7 @@ import java.util.Set;
 final class NavBridge {
     interface Sink { void send(JSONObject o); }
     interface Connected { boolean get(); }
+    interface Active { StatusBarNotification[] get(); }
 
     // 不用 Set.of（安卓 11 才有），兼容更老的系统
     static final Set<String> MAP_PKGS = new java.util.HashSet<>(java.util.Arrays.asList(
@@ -55,11 +56,14 @@ final class NavBridge {
     private BroadcastReceiver amapReceiver;
 
     private final Connected connected;
+    private final Active active;
+    private long lastViewsAt;
 
-    NavBridge(Context ctx, Sink sink, Connected connected) {
+    NavBridge(Context ctx, Sink sink, Connected connected, Active active) {
         this.ctx = ctx;
         this.sink = sink;
         this.connected = connected;
+        this.active = active;
     }
 
     void start() {
@@ -80,7 +84,17 @@ final class NavBridge {
 
     /** 副屏刚连上时补发当前导航状态。 */
     void resend() {
-        if (last != null) sink.send(last);
+        if (last != null) { sink.send(last); return; }
+        // 副屏连上之前就已经在导航：没连时不处理通知，所以这里主动扫一遍当前通知栏
+        try {
+            StatusBarNotification[] all = active.get();
+            if (all == null) return;
+            for (StatusBarNotification sbn : all) {
+                if (MAP_PKGS.contains(sbn.getPackageName()) && sbn.isOngoing()) { lastViewsAt = 0; onPosted(sbn); }
+            }
+        } catch (Exception e) {
+            log("scan failed " + e);
+        }
     }
 
     void onPosted(StatusBarNotification sbn) {
@@ -102,6 +116,20 @@ final class NavBridge {
             o.put("sub", str(ex, Notification.EXTRA_SUB_TEXT));
             o.put("big", str(ex, Notification.EXTRA_BIG_TEXT));
             o.put("info", str(ex, Notification.EXTRA_INFO_TEXT));
+            // 高德/百度常用自定义通知布局，标准字段是空的或只有“正在导航”：从布局里把文字读出来
+            String t0 = o.optString("title"), x0 = o.optString("text");
+            if (t0.isEmpty() || x0.isEmpty() || !t0.matches(".*\\d.*") && !x0.matches(".*\\d.*")) {
+                long now = System.currentTimeMillis();
+                if (now - lastViewsAt < 1000 && last != null) return; // 每秒最多解析一次布局，省电
+                lastViewsAt = now;
+                java.util.List<String> lines = viewTexts(n);
+                log("views " + lines);
+                if (!lines.isEmpty()) {
+                    o.put("title", pickTitle(lines, t0));
+                    o.put("text", pickRoad(lines, o.optString("title")));
+                    o.put("sub", pickRemain(lines, o.optString("sub")));
+                }
+            }
             String icon = iconB64(n);
             if (icon != null) o.put("icon", icon);
             lastNotifKey = sbn.getKey();
@@ -156,6 +184,62 @@ final class NavBridge {
     }
 
     // ---------------- 工具 ----------------
+
+    /** 把通知的自定义布局（优先展开后的大布局）渲染出来，按顺序取出所有文字 */
+    private java.util.List<String> viewTexts(Notification n) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        android.widget.RemoteViews rv = n.bigContentView != null ? n.bigContentView : n.contentView;
+        if (rv == null) return out;
+        try {
+            android.view.View v = rv.apply(ctx, new android.widget.FrameLayout(ctx));
+            collect(v, out);
+        } catch (Throwable e) {
+            log("views failed " + e);
+        }
+        return out;
+    }
+
+    private static void collect(android.view.View v, java.util.List<String> out) {
+        if (v.getVisibility() != android.view.View.VISIBLE) return;
+        if (v instanceof android.widget.TextView) {
+            CharSequence cs = ((android.widget.TextView) v).getText();
+            String t = cs == null ? "" : cs.toString().trim();
+            if (!t.isEmpty() && !out.contains(t)) out.add(t);
+        } else if (v instanceof android.view.ViewGroup) {
+            android.view.ViewGroup g = (android.view.ViewGroup) v;
+            for (int i = 0; i < g.getChildCount(); i++) collect(g.getChildAt(i), out);
+        }
+    }
+
+    static final java.util.regex.Pattern DIST = java.util.regex.Pattern.compile("^[\\d.]+\\s*(米|公里|千米|km|m)$", java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /** 标题：距离 + 动作，如“300米 左转”。布局里距离和动作常是两个分开的文字 */
+    static String pickTitle(java.util.List<String> lines, String fallback) {
+        for (int i = 0; i < lines.size(); i++) {
+            String s = lines.get(i);
+            if (s.matches("^[\\d.]+\\s*(米|公里|千米|km|m).*") && !s.startsWith("剩余")) {
+                if (DIST.matcher(s).matches() && i + 1 < lines.size() && isAction(lines.get(i + 1))) return s + " " + lines.get(i + 1);
+                return s;
+            }
+        }
+        return fallback;
+    }
+
+    static boolean isAction(String s) { return s.length() <= 8 && s.matches(".*(左|右|直行|掉头|环岛|到达|进入|驶出|靠).*"); }
+
+    /** 路名：带“进入/沿/往”的一行，或不含数字的较长中文行 */
+    static String pickRoad(java.util.List<String> lines, String title) {
+        for (String s : lines) if (s.matches("^(进入|沿|往|朝|驶入).*")) return s;
+        for (String s : lines) if (!title.contains(s) && !s.matches(".*\\d.*") && s.length() >= 2 && !s.matches(".*(导航|高德|百度|腾讯|地图|退出).*")) return s;
+        return "";
+    }
+
+    /** 剩余里程/时间 */
+    static String pickRemain(java.util.List<String> lines, String fallback) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : lines) if (s.matches(".*(剩余|到达|分钟|小时).*") && s.matches(".*\\d.*") && !s.matches("^[\\d.]+\\s*(米|公里).*")) { if (sb.length() > 0) sb.append(" · "); sb.append(s); }
+        return sb.length() > 0 ? sb.toString() : fallback;
+    }
 
     private String iconB64(Notification n) {
         try {
